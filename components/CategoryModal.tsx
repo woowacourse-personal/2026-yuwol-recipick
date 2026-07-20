@@ -65,7 +65,9 @@ export function CategoryModal({
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addCustom()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) addCustom();
+            }}
             placeholder="새 카테고리"
             className="flex-1 rounded-xl border border-neutral-300 px-3 py-2 text-sm"
           />

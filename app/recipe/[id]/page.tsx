@@ -59,14 +59,14 @@ export default function PrepPage() {
   }
 
   return (
-    <main className="mx-auto min-h-dvh max-w-md px-4 pb-28">
+    <main className="mx-auto min-h-dvh max-w-md px-4 pb-40">
       <header className="flex items-start justify-between gap-3 py-4">
         <Link href="/" className="mt-1 text-neutral-400" aria-label="뒤로">
           ‹ 홈
         </Link>
         <Link
           href={`/recipe/${recipe.id}/edit`}
-          className="mt-1 shrink-0 text-sm text-neutral-500 underline"
+          className="mt-1 shrink-0 text-sm font-medium text-brand-600 underline"
         >
           수정
         </Link>
@@ -80,7 +80,7 @@ export default function PrepPage() {
       {recipe.tags.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5">
           {recipe.tags.map((t) => (
-            <span key={t} className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600">
+            <span key={t} className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
               #{t}
             </span>
           ))}
@@ -114,21 +114,27 @@ export default function PrepPage() {
       </section>
 
       {/* 요리 시작 (뷰 모드 선택 가능) */}
-      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-neutral-200 bg-white/95 p-3 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-neutral-200 bg-white/95 p-4 backdrop-blur">
         <Link
           href={`/recipe/${recipe.id}/cook`}
-          className="block rounded-2xl bg-neutral-900 py-4 text-center text-lg font-bold text-white"
+          className="flex items-center justify-center gap-2 rounded-2xl bg-brand-500 py-4 text-lg font-bold text-white shadow-lg shadow-brand-500/30 transition active:scale-[0.99]"
         >
-          요리 시작
-          <span className="ml-2 text-sm font-normal text-neutral-300">
-            {getViewMode() === "overview" ? "· 전체 모드" : "· 카드 모드"}
+          <span>🍳 요리 시작</span>
+          <span className="text-sm font-medium text-white/80">
+            {getViewMode() === "overview" ? "전체 모드" : "카드 모드"}
           </span>
         </Link>
-        <div className="mt-2 flex justify-center gap-4 text-sm text-neutral-500">
-          <Link href={`/recipe/${recipe.id}/cook?view=cards`} className="underline">
+        <div className="mt-2.5 grid grid-cols-2 gap-2">
+          <Link
+            href={`/recipe/${recipe.id}/cook?view=cards`}
+            className="rounded-xl border border-brand-200 bg-brand-50 py-3 text-center text-sm font-semibold text-brand-700 transition active:scale-[0.99]"
+          >
             카드 모드로 시작
           </Link>
-          <Link href={`/recipe/${recipe.id}/cook?view=overview`} className="underline">
+          <Link
+            href={`/recipe/${recipe.id}/cook?view=overview`}
+            className="rounded-xl border border-brand-200 bg-brand-50 py-3 text-center text-sm font-semibold text-brand-700 transition active:scale-[0.99]"
+          >
             전체 모드로 시작
           </Link>
         </div>

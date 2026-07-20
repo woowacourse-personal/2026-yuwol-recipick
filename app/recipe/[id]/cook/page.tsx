@@ -79,27 +79,27 @@ function CookInner() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col bg-white">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col bg-[#221d1a] text-neutral-100">
       {/* 상단 바: 제목 + 뷰 토글(우측, 뚜렷하게) */}
-      <header className="flex items-center gap-2 border-b border-neutral-200 px-3 py-2">
+      <header className="flex items-center gap-2 border-b border-white/10 px-3 py-2.5">
         <button
           onClick={() => router.push(`/recipe/${recipe.id}`)}
-          className="text-neutral-400"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-lg text-white/60 active:bg-white/10"
           aria-label="닫기"
         >
           ✕
         </button>
-        <h1 className="min-w-0 flex-1 truncate text-sm font-semibold">{recipe.title}</h1>
-        <div className="flex overflow-hidden rounded-full border border-neutral-300 text-xs">
+        <h1 className="min-w-0 flex-1 truncate text-sm font-semibold text-white">{recipe.title}</h1>
+        <div className="flex overflow-hidden rounded-full border border-white/20 text-xs">
           <button
             onClick={() => toggleView("cards")}
-            className={`px-3 py-1.5 ${view === "cards" ? "bg-neutral-900 text-white" : "text-neutral-500"}`}
+            className={`px-3.5 py-2 font-medium ${view === "cards" ? "bg-brand-500 text-white" : "text-white/60"}`}
           >
             카드
           </button>
           <button
             onClick={() => toggleView("overview")}
-            className={`px-3 py-1.5 ${view === "overview" ? "bg-neutral-900 text-white" : "text-neutral-500"}`}
+            className={`px-3.5 py-2 font-medium ${view === "overview" ? "bg-brand-500 text-white" : "text-white/60"}`}
           >
             전체
           </button>

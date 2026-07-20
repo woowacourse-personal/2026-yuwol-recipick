@@ -333,7 +333,8 @@ function CategoryAdder({ onAdd }: { onAdd: (c: string) => void }) {
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && draft.trim()) {
+          // 한글 IME 조합 중 Enter는 조합 확정용 — 마지막 글자 중복 입력 방지.
+          if (e.key === "Enter" && !e.nativeEvent.isComposing && draft.trim()) {
             onAdd(draft.trim());
             setDraft("");
           }

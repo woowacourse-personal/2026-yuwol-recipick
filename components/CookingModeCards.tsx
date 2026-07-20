@@ -63,28 +63,28 @@ export function CookingModeCards({
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
       >
-        <div className="mb-3 flex items-center gap-2 text-sm text-neutral-400">
-          <span className="font-bold text-neutral-900">
+        <div className="mb-4 flex items-center justify-center gap-2 text-sm text-white/40">
+          <span className="font-bold text-brand-400">
             {index + 1} / {steps.length}
           </span>
           {step.startTime !== undefined && <span>· {formatTime(step.startTime)}</span>}
         </div>
 
-        <p className="text-2xl leading-relaxed">
+        <p className="text-center text-2xl leading-relaxed text-neutral-50">
           <HighlightedText text={step.text} highlights={step.highlights} />
         </p>
 
         {step.memo && (
-          <p className="mt-4 rounded-xl bg-yellow-50 p-3 text-base text-yellow-900">
+          <p className="mt-4 rounded-xl bg-amber-400/15 p-3 text-center text-base text-amber-200">
             📝 {step.memo}
           </p>
         )}
 
         <div className="mt-auto pt-6">
           {/* 프로그레스 바 */}
-          <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
+          <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full bg-neutral-900 transition-all"
+              className="h-full bg-brand-500 transition-all"
               style={{ width: `${((index + 1) / steps.length) * 100}%` }}
             />
           </div>
@@ -93,13 +93,13 @@ export function CookingModeCards({
             <button
               onClick={() => index > 0 && setIndex(index - 1)}
               disabled={index === 0}
-              className="flex-1 rounded-xl border border-neutral-300 py-4 text-lg font-medium disabled:opacity-30"
+              className="flex-1 rounded-xl border border-white/20 py-4 text-lg font-medium text-white active:bg-white/10 disabled:opacity-25"
             >
               이전
             </button>
             <button
               onClick={() => setListOpen(true)}
-              className="rounded-xl border border-neutral-300 px-4 py-4 text-lg"
+              className="rounded-xl border border-white/20 px-4 py-4 text-lg text-white active:bg-white/10"
               aria-label="전체 보기"
             >
               목록
@@ -107,7 +107,7 @@ export function CookingModeCards({
             <button
               onClick={() => index < steps.length - 1 && setIndex(index + 1)}
               disabled={index === steps.length - 1}
-              className="flex-1 rounded-xl bg-neutral-900 py-4 text-lg font-medium text-white disabled:opacity-30"
+              className="flex-1 rounded-xl bg-brand-500 py-4 text-lg font-bold text-white shadow-lg shadow-brand-500/30 active:scale-[0.99] disabled:opacity-25 disabled:shadow-none"
             >
               다음
             </button>
@@ -117,14 +117,14 @@ export function CookingModeCards({
 
       {listOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-end bg-black/40"
+          className="fixed inset-0 z-50 flex items-end bg-black/50"
           onClick={() => setListOpen(false)}
         >
           <div
-            className="max-h-[70vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4"
+            className="mx-auto max-h-[70vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-[#2a2320] p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="mb-2 font-bold">전체 스텝</h3>
+            <h3 className="mb-2 font-bold text-white">전체 스텝</h3>
             <ol className="space-y-1">
               {steps.map((s, i) => (
                 <li key={s.order}>
@@ -133,8 +133,8 @@ export function CookingModeCards({
                       setIndex(i);
                       setListOpen(false);
                     }}
-                    className={`flex w-full gap-2 rounded-lg p-2 text-left ${
-                      i === index ? "bg-neutral-900 text-white" : "active:bg-neutral-100"
+                    className={`flex w-full gap-2 rounded-lg p-3 text-left ${
+                      i === index ? "bg-brand-500 text-white" : "text-neutral-200 active:bg-white/10"
                     }`}
                   >
                     <span className="font-bold">{s.order}.</span>

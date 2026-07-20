@@ -49,42 +49,48 @@ export function CookingModeOverview({
         {recipe.steps.map((s, i) => {
           const active = i === activeIndex;
           return (
-            <li
-              key={s.order}
-              className={`rounded-2xl border p-4 transition-colors ${
-                active ? "border-neutral-900 bg-neutral-50" : "border-neutral-200 bg-white"
-              }`}
-            >
-              <div className="flex items-start gap-3">
+            <li key={s.order}>
+              <button
+                onClick={() => onDetail(i)}
+                aria-label={`${s.order}단계 카드로 보기`}
+                className={`flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition-colors ${
+                  active ? "border-brand-500 bg-brand-500/10" : "border-white/10 bg-white/5 active:bg-white/10"
+                }`}
+              >
                 <span
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                    active ? "bg-neutral-900 text-white" : "bg-neutral-200 text-neutral-700"
+                    active ? "bg-brand-500 text-white" : "bg-white/10 text-white/70"
                   }`}
                 >
                   {s.order}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-lg leading-relaxed">
+                  <p className="text-lg leading-relaxed text-neutral-50">
                     <HighlightedText text={s.text} highlights={s.highlights} />
                   </p>
                   {s.memo && (
-                    <p className="mt-2 rounded-lg bg-yellow-50 p-2 text-sm text-yellow-900">
+                    <p className="mt-2 rounded-lg bg-amber-400/15 p-2 text-sm text-amber-200">
                       📝 {s.memo}
                     </p>
                   )}
-                  <div className="mt-2 flex items-center gap-3">
-                    {s.startTime !== undefined && (
-                      <span className="text-xs text-neutral-400">{formatTime(s.startTime)}</span>
-                    )}
-                    <button
-                      onClick={() => onDetail(i)}
-                      className="text-sm font-medium text-neutral-600 underline"
-                    >
-                      상세 보기
-                    </button>
-                  </div>
+                  {s.startTime !== undefined && (
+                    <span className="mt-2 inline-block text-xs text-white/40">
+                      {formatTime(s.startTime)}
+                    </span>
+                  )}
                 </div>
-              </div>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`mt-0.5 h-5 w-5 shrink-0 ${active ? "text-brand-400" : "text-white/30"}`}
+                >
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </button>
             </li>
           );
         })}
