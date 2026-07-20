@@ -53,6 +53,25 @@ export function thumbnailUrl(videoId: string): string {
   return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
 }
 
+/**
+ * oEmbed로 영상 제목·채널명을 가져온다 (API 키 불필요).
+ * 실패하면 빈 객체 — 파싱은 계속 진행(채널명은 부가 정보).
+ */
+export async function fetchVideoMeta(
+  videoId: string,
+): Promise<{ title?: string; channelName?: string }> {
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`,
+    );
+    if (!res.ok) return {};
+    const data = (await res.json()) as { title?: string; author_name?: string };
+    return { title: data.title, channelName: data.author_name };
+  } catch {
+    return {};
+  }
+}
+
 export function watchUrl(videoId: string, startSeconds?: number): string {
   const base = `https://www.youtube.com/watch?v=${videoId}`;
   return startSeconds ? `${base}&t=${Math.floor(startSeconds)}s` : base;

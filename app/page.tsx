@@ -13,6 +13,7 @@ import { RecipeCard } from "@/components/RecipeCard";
 import { CategoryModal } from "@/components/CategoryModal";
 import { ParsingIndicator, Spinner } from "@/components/ParsingIndicator";
 import { TabBar } from "@/components/TabBar";
+import { Logo } from "@/components/Logo";
 
 type Pending = { parsed: ParsedRecipe; videoId: string; sourceUrl: string } | null;
 
@@ -125,7 +126,10 @@ export default function HomePage() {
   return (
     <main className="mx-auto min-h-dvh max-w-md px-4 pb-24">
       <header className="flex items-center justify-between py-4">
-        <h1 className="text-xl font-bold">레시픽</h1>
+        <div className="flex items-center gap-2">
+          <Logo className="h-8 w-8" />
+          <h1 className="text-xl font-bold">레시픽</h1>
+        </div>
         <Link href="/settings" className="text-sm text-neutral-500">설정</Link>
       </header>
 
@@ -156,33 +160,41 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* URL 변환 */}
-      <h2 className="text-sm font-semibold text-neutral-500">유튜브 레시피 담기</h2>
-      <div className="mt-1 flex gap-2">
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSave(url)}
-          placeholder="유튜브 레시피 URL 붙여넣기"
-          className="flex-1 rounded-xl border border-neutral-300 px-3 py-3"
-          inputMode="url"
-        />
-        <button
-          onClick={() => handleSave(url)}
-          disabled={saving || !url}
-          className="flex items-center justify-center gap-1.5 rounded-xl bg-neutral-900 px-5 font-medium text-white disabled:opacity-40"
-        >
-          {saving && <Spinner className="h-4 w-4" />}
-          {saving ? "정리 중" : "담기"}
-        </button>
-      </div>
+      {/* ── 담기 존 (주요 액션) — 브랜드 톤 카드로 뚜렷하게 구분 ── */}
+      <section className="rounded-2xl border border-brand-100 bg-brand-50 p-4">
+        <div className="flex items-center gap-2">
+          <span className="text-brand-600" aria-hidden="true">▶</span>
+          <h2 className="font-bold text-brand-900">유튜브 레시피 담기</h2>
+        </div>
+        <p className="mt-0.5 text-xs text-brand-700/80">
+          URL만 붙여넣으면 단계별 요리 카드로 정리해 드려요.
+        </p>
+        <div className="mt-3 flex gap-2">
+          <input
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSave(url)}
+            placeholder="유튜브 레시피 URL 붙여넣기"
+            className="flex-1 rounded-xl border border-brand-200 bg-white px-3 py-3 placeholder:text-neutral-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            inputMode="url"
+          />
+          <button
+            onClick={() => handleSave(url)}
+            disabled={saving || !url}
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-brand-500 px-5 font-bold text-white shadow-sm transition-colors hover:bg-brand-600 disabled:opacity-40"
+          >
+            {saving && <Spinner className="h-4 w-4" />}
+            {saving ? "정리 중" : "담기"}
+          </button>
+        </div>
 
-      {saving && <ParsingIndicator messages={URL_STAGES} className="mt-2" />}
-      {error && <p className="mt-2 rounded-lg bg-red-50 p-2 text-sm text-red-700">{error}</p>}
+        {saving && <ParsingIndicator messages={URL_STAGES} className="mt-2" />}
+        {error && <p className="mt-2 rounded-lg bg-red-50 p-2 text-sm text-red-700">{error}</p>}
+      </section>
 
       {/* 자막 없는 영상: 붙여넣기 경로로 안내 */}
       {noTranscriptUrl && (
-        <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm">
+        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm">
           <p className="font-medium text-amber-900">이 영상은 자막이 없어 자동으로 읽을 수 없어요.</p>
           <p className="mt-1 text-amber-800">
             영상 <span className="font-medium">설명란·고정 댓글</span>의 레시피 글을 붙여넣으면 대신 정리해 드려요.
@@ -196,14 +208,28 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* 검색 */}
-      <h2 className="mt-6 text-sm font-semibold text-neutral-500">담아둔 레시피 검색</h2>
-      <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="제목·재료·태그 검색 (예: 면)"
-        className="mt-1 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm"
-      />
+      {/* ── 구분선: 담기(추가) 과 찾기(검색)의 성격을 분리 ── */}
+      <div className="my-6 flex items-center gap-3">
+        <span className="h-px flex-1 bg-neutral-200" />
+        <span className="text-xs font-medium text-neutral-400">담아둔 레시피</span>
+        <span className="h-px flex-1 bg-neutral-200" />
+      </div>
+
+      {/* ── 검색 존 (보조) — 아이콘 프리픽스로 '찾기'임을 명확히 ── */}
+      <div className="relative">
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" aria-hidden="true">
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3-3" />
+          </svg>
+        </span>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="담아둔 레시피에서 찾기 (제목·재료·태그)"
+          className="w-full rounded-full border border-neutral-200 bg-neutral-100 py-2.5 pl-9 pr-3 text-sm focus:border-neutral-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-neutral-200"
+        />
+      </div>
 
       {/* 결과 / 최근 미리보기 */}
       <section className="mt-4 space-y-3">

@@ -44,7 +44,7 @@ export function TabBar() {
                 href={t.href}
                 aria-current={active ? "page" : undefined}
                 className={`flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium ${
-                  active ? "text-neutral-900" : "text-neutral-400"
+                  active ? "text-brand-600" : "text-neutral-400"
                 }`}
               >
                 <svg
