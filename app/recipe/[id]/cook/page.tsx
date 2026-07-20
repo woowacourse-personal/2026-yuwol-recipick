@@ -90,16 +90,17 @@ function CookInner() {
           ✕
         </button>
         <h1 className="min-w-0 flex-1 truncate text-sm font-semibold text-white">{recipe.title}</h1>
-        <div className="flex overflow-hidden rounded-full border border-white/20 text-xs">
+        {/* 카드/전체는 대등한 두 뷰 — 우열 대신 서로 다른 색(코랄/바이올렛)으로 구분만 한다 (CLAUDE.md) */}
+        <div className="flex overflow-hidden rounded-full border border-white/20 text-[11px]">
           <button
             onClick={() => toggleView("cards")}
-            className={`px-3.5 py-2 font-medium ${view === "cards" ? "bg-brand-500 text-white" : "text-white/60"}`}
+            className={`px-2.5 py-1.5 font-medium ${view === "cards" ? "bg-brand-500 text-white" : "text-white/60"}`}
           >
             카드
           </button>
           <button
             onClick={() => toggleView("overview")}
-            className={`px-3.5 py-2 font-medium ${view === "overview" ? "bg-brand-500 text-white" : "text-white/60"}`}
+            className={`px-2.5 py-1.5 font-medium ${view === "overview" ? "bg-violet-500 text-white" : "text-white/60"}`}
           >
             전체
           </button>

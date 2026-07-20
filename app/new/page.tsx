@@ -263,8 +263,9 @@ function ManualForm({ existingCats, router }: { existingCats: string[]; router: 
                 setIngredients((arr) => arr.map((x, j) => (j === i ? { ...x, isBasic: !x.isBasic } : x)))
               }
               className={`rounded-lg px-2 py-1.5 text-xs ${ing.isBasic ? "bg-neutral-200" : "bg-neutral-900 text-white"}`}
+              title="탭하면 장볼 재료 ↔ 기본 양념 전환"
             >
-              {ing.isBasic ? "기본" : "특수"}
+              {ing.isBasic ? "기본양념" : "장볼거"}
             </button>
           </div>
         ))}

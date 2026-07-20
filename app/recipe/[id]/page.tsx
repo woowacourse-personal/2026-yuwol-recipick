@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useRecipe, useCategories } from "@/lib/store";
-import { recordView, getViewMode, updateRecipe, addCategory } from "@/lib/storage";
+import { recordView, updateRecipe, addCategory, removeCategory } from "@/lib/storage";
 import { IngredientChecklist } from "@/components/IngredientChecklist";
 import { StepOverview } from "@/components/StepOverview";
 import { SourceAttribution } from "@/components/SourceAttribution";
@@ -94,6 +94,7 @@ export default function PrepPage() {
           value={recipe.categories}
           existing={allCategories}
           onChange={setCategories}
+          onRemoveExisting={removeCategory}
         />
       </section>
 
@@ -113,29 +114,23 @@ export default function PrepPage() {
         <StepOverview recipeId={recipe.id} steps={recipe.steps} />
       </section>
 
-      {/* 요리 시작 (뷰 모드 선택 가능) */}
+      {/* 요리 시작 — 두 뷰를 대등하게 노출 (어느 쪽도 기본 우위 두지 않음) */}
       <div className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-neutral-200 bg-white/95 p-4 backdrop-blur">
-        <Link
-          href={`/recipe/${recipe.id}/cook`}
-          className="flex items-center justify-center gap-2 rounded-2xl bg-brand-500 py-4 text-lg font-bold text-white shadow-lg shadow-brand-500/30 transition active:scale-[0.99]"
-        >
-          <span>🍳 요리 시작</span>
-          <span className="text-sm font-medium text-white/80">
-            {getViewMode() === "overview" ? "전체 모드" : "카드 모드"}
-          </span>
-        </Link>
-        <div className="mt-2.5 grid grid-cols-2 gap-2">
+        <p className="mb-2.5 text-center text-sm font-medium text-neutral-500">🍳 어떻게 요리할까요?</p>
+        <div className="grid grid-cols-2 gap-2.5">
           <Link
             href={`/recipe/${recipe.id}/cook?view=cards`}
-            className="rounded-xl border border-brand-200 bg-brand-50 py-3 text-center text-sm font-semibold text-brand-700 transition active:scale-[0.99]"
+            className="flex flex-col items-center gap-0.5 rounded-2xl bg-brand-500 py-3.5 text-white shadow-lg shadow-brand-500/30 transition active:scale-[0.99]"
           >
-            카드 모드로 시작
+            <span className="text-lg font-bold">카드 모드</span>
+            <span className="text-xs font-medium text-white/80">한 단계씩 크게</span>
           </Link>
           <Link
             href={`/recipe/${recipe.id}/cook?view=overview`}
-            className="rounded-xl border border-brand-200 bg-brand-50 py-3 text-center text-sm font-semibold text-brand-700 transition active:scale-[0.99]"
+            className="flex flex-col items-center gap-0.5 rounded-2xl bg-violet-500 py-3.5 text-white shadow-lg shadow-violet-500/30 transition active:scale-[0.99]"
           >
-            전체 모드로 시작
+            <span className="text-lg font-bold">전체 모드</span>
+            <span className="text-xs font-medium text-white/80">한눈에 훑기</span>
           </Link>
         </div>
       </div>

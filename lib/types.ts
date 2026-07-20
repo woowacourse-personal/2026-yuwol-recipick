@@ -11,7 +11,7 @@ export type Highlight = {
 export type Ingredient = {
   name: string;
   amount: string;
-  isBasic: boolean; // 기본 재료(물/소금/후추 등) vs 특수 재료 (파라디 요청)
+  isBasic: boolean; // 기본 양념(물/소금/후추 등 상비) vs 장볼 재료(따로 사야 함) (파라디 요청)
 };
 
 export type Step = {

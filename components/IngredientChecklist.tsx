@@ -54,6 +54,11 @@ export function IngredientChecklist({ ingredients }: { ingredients: Ingredient[]
 
   return (
     <div>
+      {special.length > 0 && (
+        <p className="pb-1 text-sm font-medium text-neutral-500">
+          🛒 장볼 재료 {special.length}개
+        </p>
+      )}
       <div className="divide-y divide-neutral-100">
         {special.map((ing, i) => row(ing, `s-${i}`))}
       </div>
@@ -64,7 +69,7 @@ export function IngredientChecklist({ ingredients }: { ingredients: Ingredient[]
             onClick={() => setBasicOpen((v) => !v)}
             className="flex w-full items-center justify-between py-2 text-sm text-neutral-500"
           >
-            <span>기본 재료 {basic.length}개</span>
+            <span>기본 양념 {basic.length}개 · 집에 있으면 넘어가세요</span>
             <span>{basicOpen ? "접기 ▲" : "펼치기 ▼"}</span>
           </button>
           {basicOpen && (
