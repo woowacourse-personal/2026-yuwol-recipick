@@ -8,10 +8,12 @@ export function CategoryPicker({
   value,
   existing,
   onChange,
+  onRemoveExisting,
 }: {
   value: string[];
   existing: string[]; // 전역에 존재하는 카테고리들
   onChange: (next: string[]) => void;
+  onRemoveExisting?: (cat: string) => void; // 전역 목록에서 완전 삭제 (제공 시 제안 칩에 ✕ 노출)
 }) {
   const [draft, setDraft] = useState("");
 
@@ -27,6 +29,13 @@ export function CategoryPicker({
 
   function remove(cat: string) {
     onChange(value.filter((c) => c !== cat));
+  }
+
+  function removeExisting(cat: string) {
+    if (!onRemoveExisting) return;
+    if (confirm(`'${cat}' 카테고리를 완전히 삭제할까요? 모든 레시피에서 함께 제거돼요.`)) {
+      onRemoveExisting(cat);
+    }
   }
 
   // 아직 지정되지 않은 기존 카테고리 — 재입력 없이 탭으로 추가.
@@ -80,17 +89,30 @@ export function CategoryPicker({
         </button>
       </div>
 
-      {/* 기존 카테고리에서 빠르게 추가 */}
+      {/* 기존 카테고리에서 빠르게 추가 — 칩 본체 탭은 추가, ✕는 전역에서 완전 삭제 */}
       {suggestions.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {suggestions.map((c) => (
-            <button
+            <span
               key={c}
-              onClick={() => add(c)}
-              className="rounded-full border border-neutral-300 px-2.5 py-1 text-xs text-neutral-500 transition-colors hover:border-brand-300 hover:text-brand-600"
+              className="inline-flex items-center rounded-full border border-neutral-300 text-xs text-neutral-500"
             >
-              + {c}
-            </button>
+              <button
+                onClick={() => add(c)}
+                className="py-1 pl-2.5 pr-1.5 transition-colors hover:text-brand-600"
+              >
+                + {c}
+              </button>
+              {onRemoveExisting && (
+                <button
+                  onClick={() => removeExisting(c)}
+                  aria-label={`${c} 카테고리 완전 삭제`}
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-neutral-300 transition-colors hover:text-red-500"
+                >
+                  ✕
+                </button>
+              )}
+            </span>
           ))}
         </div>
       )}

@@ -5,7 +5,9 @@ import { useEffect, useRef, useState } from "react";
 import type { Recipe } from "@/lib/types";
 import { HighlightedText } from "./HighlightedText";
 import { YouTubeEmbed, type YouTubeEmbedHandle } from "./YouTubeEmbed";
+import { StepTimer } from "./StepTimer";
 import { formatTime } from "@/lib/format";
+import { stepTimerSeconds } from "@/lib/timers";
 
 export function CookingModeCards({
   recipe,
@@ -46,6 +48,8 @@ export function CookingModeCards({
 
   if (!step) return null;
 
+  const timerSeconds = stepTimerSeconds(step);
+
   return (
     <div className="flex flex-1 flex-col">
       {isYoutube && (
@@ -78,6 +82,15 @@ export function CookingModeCards({
           <p className="mt-4 rounded-xl bg-amber-400/15 p-3 text-center text-base text-amber-200">
             📝 {step.memo}
           </p>
+        )}
+
+        {timerSeconds !== null && (
+          <div className="mt-5">
+            <StepTimer
+              timerKey={`${recipe.id}:${step.order}`}
+              defaultSeconds={timerSeconds}
+            />
+          </div>
         )}
 
         <div className="mt-auto pt-6">

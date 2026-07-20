@@ -196,6 +196,29 @@ export function addCategory(name: string) {
     emit();
   }
 }
+/** 전역 카테고리를 완전히 삭제한다 — 등록 목록 + 모든 레시피의 분류에서 제거(캐스케이드). */
+export function removeCategory(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  const cats = getCategories();
+  if (cats.includes(trimmed)) {
+    categoriesCache = cats.filter((c) => c !== trimmed);
+    write(KEYS.categories, categoriesCache);
+  }
+  // 이 카테고리로 분류된 레시피들에서도 떼어낸다 (탭·카드 표시 일관성).
+  const recipes = getRecipes();
+  if (recipes.some((r) => r.categories.includes(trimmed))) {
+    commitRecipes(
+      recipes.map((r) =>
+        r.categories.includes(trimmed)
+          ? { ...r, categories: r.categories.filter((c) => c !== trimmed) }
+          : r,
+      ),
+    );
+  } else {
+    emit();
+  }
+}
 
 // ---- 뷰모드 선호 (마지막 사용 뷰가 기본값 — PRD §8 화면4) ----
 export function getViewMode(): ViewMode {
