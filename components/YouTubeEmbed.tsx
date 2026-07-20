@@ -85,7 +85,13 @@ export const YouTubeEmbed = forwardRef<YouTubeEmbedHandle, Props>(
 
       loadYouTubeApi().then(() => {
         if (cancelled || !containerRef.current || !window.YT) return;
-        playerRef.current = new window.YT.Player(containerRef.current, {
+        // YT.Player는 전달된 엘리먼트를 <iframe>으로 "교체"한다.
+        // React가 관리하는 노드를 직접 넘기면 이후 React가 그 노드를 제거하려다
+        // removeChild 크래시("not a child")가 난다. → React가 모르는 자식 노드를 만들어 넘긴다.
+        const host = document.createElement("div");
+        host.className = "h-full w-full";
+        containerRef.current.appendChild(host);
+        playerRef.current = new window.YT.Player(host, {
           videoId,
           playerVars: {
             start: Math.floor(startSeconds),
@@ -115,6 +121,8 @@ export const YouTubeEmbed = forwardRef<YouTubeEmbedHandle, Props>(
           /* noop */
         }
         playerRef.current = null;
+        // YT가 만든 iframe 등 잔여 노드를 정리 (containerRef는 React 리프라 안전).
+        if (containerRef.current) containerRef.current.innerHTML = "";
       };
       // videoId가 바뀌면 재생성. startSeconds 변경은 seekTo로 처리(부모 책임).
       // eslint-disable-next-line react-hooks/exhaustive-deps
