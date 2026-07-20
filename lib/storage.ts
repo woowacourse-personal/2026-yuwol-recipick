@@ -97,6 +97,32 @@ export function createRecipeFromParsed(input: {
   return recipe;
 }
 
+/** 붙여넣은 글을 LLM이 정리한 결과를 저장한다. 영상이 아니므로 manual로 취급하되 태그는 보존. */
+export function createRecipeFromText(input: {
+  parsed: ParsedRecipe;
+  sourceUrl?: string;
+  categories: string[];
+}): Recipe {
+  const now = new Date().toISOString();
+  const recipe: Recipe = {
+    id: newId(),
+    title: input.parsed.title,
+    sourceType: "manual",
+    sourceUrl: input.sourceUrl || undefined,
+    savedAt: now,
+    lastAccessedAt: now,
+    accessCount: 0,
+    categories: input.categories,
+    tags: input.parsed.tags,
+    ingredients: input.parsed.ingredients,
+    steps: normalizeSteps(input.parsed.steps),
+  };
+  commitRecipes([recipe, ...getRecipes()]);
+  logEvent("save", recipe.id, { sourceType: "text" });
+  input.categories.forEach(addCategory);
+  return recipe;
+}
+
 export function createManualRecipe(input: {
   title: string;
   sourceUrl?: string;

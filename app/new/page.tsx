@@ -1,17 +1,186 @@
 "use client";
 
-// 직접 작성 (PRD §8 화면6, Phase 6).
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+// 레시피 추가 (PRD §8 화면6, Phase 6).
+// 두 모드: (1) 붙여넣기 — 자유 형식 글을 LLM이 정리(자막 없는 영상 대안), (2) 직접 입력 — 수기 작성.
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createManualRecipe } from "@/lib/storage";
+import { createManualRecipe, createRecipeFromText } from "@/lib/storage";
 import { useCategories } from "@/lib/store";
-import type { Ingredient, Step } from "@/lib/types";
+import type { Ingredient, ParsedRecipe, Step } from "@/lib/types";
+import { CategoryModal } from "@/components/CategoryModal";
+import { ParsingIndicator, Spinner } from "@/components/ParsingIndicator";
+
+type Mode = "paste" | "manual";
+
+// 텍스트 파싱 대기 중 순차 안내 문구.
+const TEXT_STAGES = [
+  "붙여넣은 내용을 읽고 있어요…",
+  "재료와 조리 순서로 정리하는 중이에요…",
+  "거의 다 됐어요…",
+];
 
 export default function NewRecipePage() {
+  return (
+    <Suspense fallback={<main className="mx-auto min-h-dvh max-w-md px-4 py-8" />}>
+      <NewRecipeInner />
+    </Suspense>
+  );
+}
+
+function NewRecipeInner() {
   const router = useRouter();
+  const params = useSearchParams();
   const existingCats = useCategories();
 
+  const [mode, setMode] = useState<Mode>(params.get("mode") === "manual" ? "manual" : "paste");
+
+  return (
+    <main className="mx-auto min-h-dvh max-w-md px-4 pb-28">
+      <header className="flex items-center justify-between py-4">
+        <Link href="/" className="text-neutral-400">‹ 취소</Link>
+        <h1 className="font-semibold">레시피 추가</h1>
+        <span className="w-10" />
+      </header>
+
+      {/* 모드 토글 */}
+      <div className="flex rounded-xl bg-neutral-100 p-1 text-sm font-medium">
+        <button
+          onClick={() => setMode("paste")}
+          className={`flex-1 rounded-lg py-2 ${mode === "paste" ? "bg-white shadow-sm" : "text-neutral-500"}`}
+        >
+          붙여넣기
+        </button>
+        <button
+          onClick={() => setMode("manual")}
+          className={`flex-1 rounded-lg py-2 ${mode === "manual" ? "bg-white shadow-sm" : "text-neutral-500"}`}
+        >
+          직접 입력
+        </button>
+      </div>
+
+      {mode === "paste" ? (
+        <PasteForm defaultUrl={params.get("url") ?? ""} existingCats={existingCats} router={router} />
+      ) : (
+        <ManualForm existingCats={existingCats} router={router} />
+      )}
+    </main>
+  );
+}
+
+type Router = ReturnType<typeof useRouter>;
+
+// ---- 붙여넣기 모드 (AI 정리) ----
+function PasteForm({
+  defaultUrl,
+  existingCats,
+  router,
+}: {
+  defaultUrl: string;
+  existingCats: string[];
+  router: Router;
+}) {
+  const [text, setText] = useState("");
+  const [title, setTitle] = useState("");
+  const [sourceUrl, setSourceUrl] = useState(defaultUrl);
+  const [parsing, setParsing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState<ParsedRecipe | null>(null);
+
+  async function parse() {
+    if (text.trim().length < 10) {
+      setError("정리할 레시피 내용을 조금 더 붙여넣어 주세요");
+      return;
+    }
+    setError(null);
+    setParsing(true);
+    try {
+      const res = await fetch("/api/parse-recipe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text.trim(), title: title.trim() || undefined, url: sourceUrl.trim() || undefined }),
+      });
+      const data = await res.json();
+      if (data.ok) setPending(data.recipe);
+      else setError(data.error ?? "정리에 실패했어요. 내용을 확인해 주세요");
+    } catch {
+      setError("네트워크 오류가 발생했어요");
+    } finally {
+      setParsing(false);
+    }
+  }
+
+  function confirmSave(cats: string[]) {
+    if (!pending) return;
+    const recipe = createRecipeFromText({
+      parsed: pending,
+      sourceUrl: sourceUrl.trim() || undefined,
+      categories: cats,
+    });
+    setPending(null);
+    router.push(`/recipe/${recipe.id}`);
+  }
+
+  return (
+    <>
+      <p className="mt-4 text-sm text-neutral-500">
+        블로그 글, 영상 설명란, 손으로 적은 메모 — 재료·조리법을 <span className="font-medium text-neutral-700">아무 형식으로나</span> 붙여넣으면 단계별 레시피로 정리해 드려요.
+      </p>
+
+      <label className="mt-4 block text-sm font-medium text-neutral-500">레시피 내용 *</label>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={10}
+        placeholder={"예)\n김치찌개\n돼지고기 200g, 신김치 1/4포기, 두부 반 모, 대파, 다진마늘 1큰술\n\n1. 냄비에 기름 두르고 돼지고기를 볶는다\n2. 김치를 넣고 같이 볶다가 물 2컵을 붓는다\n3. 끓으면 두부와 대파를 넣고 10분 더 끓인다"}
+        className="mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm leading-relaxed"
+      />
+
+      <label className="mt-4 block text-sm font-medium text-neutral-500">제목 (선택 — 비우면 AI가 추출)</label>
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="요리 이름"
+        className="mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm"
+      />
+
+      <label className="mt-4 block text-sm font-medium text-neutral-500">원본 링크 (선택)</label>
+      <input
+        value={sourceUrl}
+        onChange={(e) => setSourceUrl(e.target.value)}
+        placeholder="https://…"
+        className="mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm"
+        inputMode="url"
+      />
+
+      {parsing && <ParsingIndicator messages={TEXT_STAGES} className="mt-4" />}
+      {error && <p className="mt-3 rounded-lg bg-red-50 p-2 text-sm text-red-700">{error}</p>}
+
+      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-neutral-200 bg-white p-3">
+        <button
+          onClick={parse}
+          disabled={parsing || !text.trim()}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-neutral-900 py-4 text-center text-lg font-bold text-white disabled:opacity-40"
+        >
+          {parsing && <Spinner className="h-5 w-5" />}
+          {parsing ? "정리 중…" : "레시피로 정리하기"}
+        </button>
+      </div>
+
+      {pending && (
+        <CategoryModal
+          title={pending.title}
+          existing={existingCats}
+          onConfirm={confirmSave}
+          onCancel={() => setPending(null)}
+        />
+      )}
+    </>
+  );
+}
+
+// ---- 직접 입력 모드 (수기 작성) ----
+function ManualForm({ existingCats, router }: { existingCats: string[]; router: Router }) {
   const [title, setTitle] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
@@ -34,14 +203,8 @@ export default function NewRecipePage() {
   }
 
   return (
-    <main className="mx-auto min-h-dvh max-w-md px-4 pb-28">
-      <header className="flex items-center justify-between py-4">
-        <Link href="/" className="text-neutral-400">‹ 취소</Link>
-        <h1 className="font-semibold">직접 작성</h1>
-        <span className="w-10" />
-      </header>
-
-      <label className="block text-sm font-medium text-neutral-500">제목 *</label>
+    <>
+      <label className="mt-4 block text-sm font-medium text-neutral-500">제목 *</label>
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
@@ -155,10 +318,10 @@ export default function NewRecipePage() {
           onClick={save}
           className="block w-full rounded-2xl bg-neutral-900 py-4 text-center text-lg font-bold text-white"
         >
-          저장
+          담기
         </button>
       </div>
-    </main>
+    </>
   );
 }
 

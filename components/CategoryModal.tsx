@@ -88,7 +88,7 @@ export function CategoryModal({
             onClick={() => onConfirm([...selected])}
             className="flex-1 rounded-xl bg-neutral-900 py-3 font-medium text-white"
           >
-            저장
+            담기
           </button>
         </div>
       </div>

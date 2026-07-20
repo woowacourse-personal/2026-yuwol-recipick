@@ -202,7 +202,7 @@ export default function EditPage() {
           onClick={save}
           className="block w-full rounded-2xl bg-neutral-900 py-4 text-center text-lg font-bold text-white"
         >
-          저장
+          수정 완료
         </button>
       </div>
     </main>

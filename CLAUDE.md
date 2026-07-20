@@ -48,7 +48,7 @@ Next.js 15 (App Router) · TypeScript · Tailwind v3 · Vercel Serverless · loc
 - `lib/types.ts` — 데이터 스키마(단일 진실 소스). `Recipe`, `Step`, `Ingredient`, `UsageLog`.
 - `lib/youtube.ts` — videoId 추출, 썸네일/watch URL.
 - `lib/transcript.ts` — 자막 추출(youtube-transcript, ms→초 정규화).
-- `lib/parse.ts` — LLM 파싱. **Groq `llama-3.3-70b-versatile`(무료)를 REST 호출**(OpenAI 호환), `response_format: json_object`로 JSON 강제. 키 `GROQ_API_KEY`. (Claude→Gemini→Groq 변천, 근거 `docs/DECISIONS.md`.)
+- `lib/parse.ts` — LLM 파싱. **Groq `llama-3.3-70b-versatile`(무료)를 REST 호출**(OpenAI 호환), `response_format: json_object`로 JSON 강제. 키 `GROQ_API_KEY`. (Claude→Gemini→Groq 변천, 근거 `docs/DECISIONS.md`.) `parseRecipeFromTranscript`(자막)·`parseRecipeFromText`(붙여넣은 줄글 — 자막 없는 영상 대안) 두 경로, Groq 호출부·`normalize` 공유.
 - `lib/storage.ts` — localStorage CRUD + 로깅 + 로그 내보내기.
 - `lib/store.ts` — React 바인딩(useSyncExternalStore).
 - `app/api/parse-recipe`, `app/api/youtube-transcript` — 서버 라우트.
