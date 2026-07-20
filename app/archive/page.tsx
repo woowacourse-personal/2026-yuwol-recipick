@@ -96,7 +96,7 @@ function Tab({
     <button
       onClick={onClick}
       className={`shrink-0 rounded-full px-3 py-1.5 text-sm ${
-        active ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-600"
+        active ? "bg-brand-500 font-medium text-white" : "bg-neutral-100 text-neutral-600"
       }`}
     >
       {children}

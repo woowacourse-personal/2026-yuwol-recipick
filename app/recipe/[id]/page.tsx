@@ -4,15 +4,17 @@
 import { useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useRecipe } from "@/lib/store";
-import { recordView, getViewMode } from "@/lib/storage";
+import { useRecipe, useCategories } from "@/lib/store";
+import { recordView, getViewMode, updateRecipe, addCategory } from "@/lib/storage";
 import { IngredientChecklist } from "@/components/IngredientChecklist";
 import { StepOverview } from "@/components/StepOverview";
 import { SourceAttribution } from "@/components/SourceAttribution";
+import { CategoryPicker } from "@/components/CategoryPicker";
 
 export default function PrepPage() {
   const { id } = useParams<{ id: string }>();
   const recipe = useRecipe(id);
+  const allCategories = useCategories();
 
   // 조회 기록 (accessCount++, view 로그) — 마운트 시 1회
   const viewed = useRef(false);
@@ -22,6 +24,28 @@ export default function PrepPage() {
       recordView(recipe.id);
     }
   }, [recipe]);
+
+  // 채널명 백필: 예전에 저장돼 channelName이 비어있는 유튜브 레시피는 oEmbed로 채운다 (1회).
+  const backfilled = useRef(false);
+  useEffect(() => {
+    if (!recipe || backfilled.current) return;
+    if (recipe.sourceType !== "youtube" || !recipe.videoId || recipe.channelName) return;
+    backfilled.current = true;
+    fetch(`/api/video-meta?id=${recipe.videoId}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.ok && d.channelName) updateRecipe(recipe.id, { channelName: d.channelName });
+      })
+      .catch(() => {
+        /* 백필 실패는 무시 */
+      });
+  }, [recipe]);
+
+  function setCategories(next: string[]) {
+    if (!recipe) return;
+    next.forEach(addCategory);
+    updateRecipe(recipe.id, { categories: next });
+  }
 
   if (!recipe) {
     return (
@@ -63,8 +87,18 @@ export default function PrepPage() {
         </div>
       )}
 
-      {/* 재료 — 요리 순서와 대등하게 배치 */}
+      {/* 카테고리 분류 — 사용자 커스텀 카테고리로 이 레시피를 분류 */}
       <section className="mt-6">
+        <h2 className="mb-2 text-lg font-bold">카테고리</h2>
+        <CategoryPicker
+          value={recipe.categories}
+          existing={allCategories}
+          onChange={setCategories}
+        />
+      </section>
+
+      {/* 재료 — 요리 순서와 대등하게 배치 */}
+      <section className="mt-8">
         <h2 className="mb-1 text-lg font-bold">재료</h2>
         {recipe.ingredients.length > 0 ? (
           <IngredientChecklist ingredients={recipe.ingredients} />
