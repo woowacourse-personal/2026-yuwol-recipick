@@ -1,7 +1,10 @@
 # 레시픽 (Recipick) v5 개발 프롬프트 (원본 스펙)
 
-> 이 문서는 개발 착수의 근거가 된 원본 프롬프트 전문이다. 단일 진실 소스(Single Source of Truth).
-> 요약·결정 로그는 `/CLAUDE.md`, `docs/DECISIONS.md` 참고.
+> ⚠️ **동결 문서(FROZEN).** 개발 착수의 근거가 된 원본 프롬프트 전문 — 역사적 기록으로 보존한다.
+> **이후의 학습·가설 상태·결정은 여기 고치지 말고** 하네스에 축적한다:
+> 가설=`docs/HYPOTHESES.md`, 학습 유입=`docs/INSIGHTS-LOG.md`, 리서치=`docs/research/`,
+> 실험=`docs/experiments/`, 결정=`docs/DECISIONS.md`. 요약·라우팅은 `/CLAUDE.md`.
+> (특히 §4 인터뷰 발견·§5 검증 목적은 `HYPOTHESES.md`·`research/`로 이관됨 — 최신 상태는 그쪽을 볼 것.)
 
 ---
 
