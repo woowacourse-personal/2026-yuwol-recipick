@@ -75,8 +75,8 @@ export const YouTubeEmbed = forwardRef<YouTubeEmbedHandle, Props>(
     onTimeRef.current = onTime;
 
     useImperativeHandle(ref, () => ({
-      seekTo: (s: number) => playerRef.current?.seekTo(s, true),
-      getCurrentTime: () => playerRef.current?.getCurrentTime() ?? 0,
+      seekTo: (s: number) => playerRef.current?.seekTo?.(s, true),
+      getCurrentTime: () => playerRef.current?.getCurrentTime?.() ?? 0,
     }));
 
     useEffect(() => {
@@ -100,16 +100,21 @@ export const YouTubeEmbed = forwardRef<YouTubeEmbedHandle, Props>(
             modestbranding: 1,
           },
           events: {
+            // 플레이어 메서드(getCurrentTime 등)는 onReady 이후에만 붙는다.
+            // 생성 직후 폴링을 걸면 "getCurrentTime is not a function"으로 크래시.
+            onReady: () => {
+              if (cancelled) return;
+              interval = setInterval(() => {
+                const t = playerRef.current?.getCurrentTime?.();
+                if (typeof t === "number") onTimeRef.current?.(t);
+              }, 700);
+            },
             onError: () => {
               setBlocked(true);
               onBlocked?.();
             },
           },
         });
-        interval = setInterval(() => {
-          const t = playerRef.current?.getCurrentTime();
-          if (typeof t === "number") onTimeRef.current?.(t);
-        }, 700);
       });
 
       return () => {

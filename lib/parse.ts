@@ -79,6 +79,25 @@ export class LlmConfigError extends Error {
   }
 }
 
+/**
+ * 영상이 길어 자막+응답 토큰이 모델의 분당 토큰 한도(TPM)를 한 번에 넘긴 경우(HTTP 413).
+ * 재시도해도 동일하게 실패하므로 429(RateLimitError)와 구분한다.
+ */
+export class RecipeTooLongError extends Error {
+  constructor(message = "영상이 너무 길어 한 번에 정리하기 어려워요") {
+    super(message);
+    this.name = "RecipeTooLongError";
+  }
+}
+
+/** 순간적으로 요청이 몰려 rate limit에 걸린 경우(HTTP 429). 잠시 후 재시도하면 대개 풀린다. */
+export class RateLimitError extends Error {
+  constructor(message = "지금 요청이 몰려 있어요") {
+    super(message);
+    this.name = "RateLimitError";
+  }
+}
+
 export async function parseRecipeFromTranscript(params: {
   transcript: string;
   videoTitle?: string;
@@ -130,7 +149,9 @@ async function callGroq(systemPrompt: string, userContent: string): Promise<unkn
     ],
     response_format: { type: "json_object" },
     temperature: 0.2,
-    max_tokens: 8000,
+    // 레시피 JSON은 이 정도면 충분하다. 예약 출력 토큰이 클수록 TPM 한도(12k)를 빨리 소진해
+    // 조금만 긴 영상도 413을 유발하므로, 자막이 들어갈 여유를 남기려 낮춰 잡는다.
+    max_tokens: 4000,
   };
 
   const call = () =>
@@ -145,8 +166,12 @@ async function callGroq(systemPrompt: string, userContent: string): Promise<unkn
 
   let res = await call();
   if (!res.ok) {
+    // 413(Request too large): 단일 요청이 분당 토큰 한도를 초과 — 재시도해도 실패하므로 즉시 안내.
+    if (res.status === 413) throw new RecipeTooLongError();
+    // 429(rate limit)·5xx(일시 오류): 한 번만 재시도.
     if (res.status === 429 || res.status >= 500) res = await call();
     if (!res.ok) {
+      if (res.status === 429) throw new RateLimitError();
       const detail = await safeErrorMessage(res);
       throw new ParseFailedError(`Groq 오류 ${res.status}: ${detail}`);
     }

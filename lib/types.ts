@@ -82,5 +82,7 @@ export type ParseErrorCode =
   | "invalid_url"
   | "unsupported_source"
   | "no_transcript"
+  | "too_long"
+  | "rate_limit"
   | "parse_failed"
   | "server_error";

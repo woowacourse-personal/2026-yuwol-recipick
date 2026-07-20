@@ -6,6 +6,8 @@ import {
   parseRecipeFromText,
   ParseFailedError,
   LlmConfigError,
+  RecipeTooLongError,
+  RateLimitError,
 } from "@/lib/parse";
 import type { ParsedRecipe } from "@/lib/types";
 
@@ -92,6 +94,19 @@ function errorResponse(err: unknown) {
     return NextResponse.json(
       { ok: false, error: err.message, code: "no_transcript" },
       { status: 422 },
+    );
+  }
+  if (err instanceof RecipeTooLongError) {
+    // 영상이 길어 한 번에 처리 불가 — 재시도해도 실패하므로 붙여넣기 경로로 유도한다.
+    return NextResponse.json(
+      { ok: false, error: err.message, code: "too_long" },
+      { status: 413 },
+    );
+  }
+  if (err instanceof RateLimitError) {
+    return NextResponse.json(
+      { ok: false, error: err.message, code: "rate_limit" },
+      { status: 429 },
     );
   }
   if (err instanceof ParseFailedError) {

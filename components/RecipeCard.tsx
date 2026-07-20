@@ -33,15 +33,23 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
           </p>
         )}
         {recipe.categories.length > 0 && (
-          <div className="mt-1 flex flex-wrap gap-1">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1">
             {recipe.categories.slice(0, 3).map((c) => (
               <span
                 key={c}
-                className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700"
+                className="inline-flex items-center gap-1 rounded-full bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-700"
               >
+                <svg className="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                </svg>
                 {c}
               </span>
             ))}
+            {recipe.categories.length > 3 && (
+              <span className="text-xs font-medium text-brand-600">
+                +{recipe.categories.length - 3}
+              </span>
+            )}
           </div>
         )}
 
