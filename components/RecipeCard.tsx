@@ -48,14 +48,16 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
         <h3 className="line-clamp-2 font-semibold leading-snug text-neutral-900">
           {recipe.title}
         </h3>
-        {recipe.channelName && (
-          <p className="mt-1 truncate text-xs text-neutral-500">
-            {recipe.channelName}
-          </p>
-        )}
+        {/* 채널·날짜를 한 줄로 응집 (조회수 제거 후 메타 정리) */}
+        <p className="mt-1 truncate text-xs text-neutral-500">
+          {recipe.channelName
+            ? `${recipe.channelName} · ${formatDate(recipe.savedAt)}`
+            : formatDate(recipe.savedAt)}
+        </p>
 
+        {/* 카테고리 칩을 하단에 고정해 카드 균형을 잡는다 */}
         {recipe.categories.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
+          <div className="mt-auto flex flex-wrap gap-1 pt-2">
             {recipe.categories.slice(0, 3).map((c) => (
               <span
                 key={c}
@@ -71,16 +73,6 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
             )}
           </div>
         )}
-
-        <div className="mt-auto flex items-center gap-1.5 pt-2 text-[11px] text-neutral-400">
-          <span>{formatDate(recipe.savedAt)}</span>
-          {recipe.accessCount > 0 && (
-            <>
-              <span>·</span>
-              <span>조회 {recipe.accessCount}</span>
-            </>
-          )}
-        </div>
       </div>
     </Link>
   );

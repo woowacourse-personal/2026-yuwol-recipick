@@ -26,10 +26,12 @@ export function CookingModeCards({
   const [listOpen, setListOpen] = useState(false);
   const isYoutube = recipe.sourceType === "youtube" && !!recipe.videoId;
 
-  // 스텝 이동 시 타임스탬프로 seek
+  // 스텝 이동 시 해당 타임스탬프로 이동 후 재생 (카드 단계에 맞춰 영상이 따라온다).
+  // 최초 마운트 땐 플레이어가 아직 준비 전이라 no-op → 입장하자마자 자동재생되진 않고,
+  // 사용자가 스텝을 넘길 때 그 구간이 재생된다. 스텝 끝에서 멈추거나 자동 넘김은 하지 않음(PRD).
   useEffect(() => {
     if (isYoutube && step?.startTime !== undefined) {
-      embedRef.current?.seekTo(step.startTime);
+      embedRef.current?.seekTo(step.startTime, true);
     }
   }, [index, isYoutube, step?.startTime]);
 
@@ -74,7 +76,7 @@ export function CookingModeCards({
           {step.startTime !== undefined && <span>· {formatTime(step.startTime)}</span>}
         </div>
 
-        <p className="text-center text-2xl leading-relaxed text-neutral-50">
+        <p className="text-center text-3xl leading-relaxed text-neutral-50">
           <HighlightedText text={step.text} highlights={step.highlights} />
         </p>
 

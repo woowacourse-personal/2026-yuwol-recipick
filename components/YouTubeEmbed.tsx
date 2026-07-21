@@ -28,7 +28,8 @@ declare global {
 }
 
 export type YouTubeEmbedHandle = {
-  seekTo: (seconds: number) => void;
+  /** 지정 초로 이동. play=true면 이동 후 재생까지(스텝 이동 시 해당 구간 재생용). */
+  seekTo: (seconds: number, play?: boolean) => void;
   getCurrentTime: () => number;
 };
 
@@ -75,7 +76,10 @@ export const YouTubeEmbed = forwardRef<YouTubeEmbedHandle, Props>(
     onTimeRef.current = onTime;
 
     useImperativeHandle(ref, () => ({
-      seekTo: (s: number) => playerRef.current?.seekTo?.(s, true),
+      seekTo: (s: number, play = false) => {
+        playerRef.current?.seekTo?.(s, true);
+        if (play) playerRef.current?.playVideo?.();
+      },
       getCurrentTime: () => playerRef.current?.getCurrentTime?.() ?? 0,
     }));
 
