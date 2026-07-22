@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { Recipe } from "@/lib/types";
 import { formatDate } from "@/lib/format";
+import { YouTubeGlyph } from "./YouTubeGlyph";
 
 export function RecipeCard({ recipe }: { recipe: Recipe }) {
   return (
@@ -38,9 +39,7 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
           </div>
         )}
         {recipe.sourceType === "youtube" && recipe.thumbnail && (
-          <span className="absolute bottom-1 left-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/55 text-[8px] text-white">
-            ▶
-          </span>
+          <YouTubeGlyph className="absolute bottom-1 left-1 h-3.5 w-5 drop-shadow" />
         )}
       </div>
 

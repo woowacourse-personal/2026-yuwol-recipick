@@ -20,7 +20,8 @@ export function IngredientChecklist({
   }, [ingredients]);
 
   const [checked, setChecked] = useState<Set<string>>(new Set());
-  const [basicOpen, setBasicOpen] = useState(false);
+  // 기본 양념도 펼침이 디폴트 — 접힘이 기본이라 안 보인다는 지적(이안·송송).
+  const [basicOpen, setBasicOpen] = useState(true);
 
   function toggle(key: string) {
     setChecked((prev) => {

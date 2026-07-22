@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRecipe } from "@/lib/store";
 import { updateRecipe, deleteRecipe, addCategory } from "@/lib/storage";
 import type { Ingredient, Step } from "@/lib/types";
+import { TabBar } from "@/components/TabBar";
 
 export default function EditPage() {
   const { id } = useParams<{ id: string }>();
@@ -68,7 +69,7 @@ export default function EditPage() {
   }
 
   return (
-    <main className="mx-auto min-h-dvh max-w-md px-4 pb-28">
+    <main className="mx-auto min-h-dvh max-w-md px-4 pb-44">
       <header className="flex items-center justify-between py-4">
         <Link href={`/recipe/${recipe.id}`} className="text-neutral-400">‹ 취소</Link>
         <button onClick={remove} className="text-sm text-red-500">삭제</button>
@@ -217,7 +218,10 @@ export default function EditPage() {
         + 스텝 추가
       </button>
 
-      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-neutral-200 bg-white p-3">
+      <div
+        className="fixed inset-x-0 mx-auto max-w-md border-t border-neutral-200 bg-white p-3"
+        style={{ bottom: "calc(60px + env(safe-area-inset-bottom))" }}
+      >
         <button
           onClick={save}
           className="block w-full rounded-2xl bg-neutral-900 py-4 text-center text-lg font-bold text-white"
@@ -225,6 +229,8 @@ export default function EditPage() {
           수정 완료
         </button>
       </div>
+
+      <TabBar />
     </main>
   );
 }

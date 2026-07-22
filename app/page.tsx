@@ -14,6 +14,7 @@ import { CategoryModal } from "@/components/CategoryModal";
 import { ParsingIndicator, Spinner } from "@/components/ParsingIndicator";
 import { TabBar } from "@/components/TabBar";
 import { Logo } from "@/components/Logo";
+import { YouTubeGlyph } from "@/components/YouTubeGlyph";
 
 type Pending = { parsed: ParsedRecipe; videoId: string; sourceUrl: string } | null;
 
@@ -109,7 +110,7 @@ export default function HomePage() {
       categories: cats,
     });
     setPending(null);
-    router.push(`/recipe/${recipe.id}`);
+    router.push(`/recipe/${recipe.id}?saved=1`);
   }
 
   const trimmedQuery = query.trim();
@@ -163,7 +164,7 @@ export default function HomePage() {
       {/* ── 담기 존 (주요 액션) — 브랜드 톤 카드로 뚜렷하게 구분 ── */}
       <section className="rounded-2xl border border-brand-100 bg-brand-50 p-4">
         <div className="flex items-center gap-2">
-          <span className="text-brand-600" aria-hidden="true">▶</span>
+          <YouTubeGlyph className="h-4 w-5" />
           <h2 className="font-bold text-brand-900">유튜브 레시피 담기</h2>
         </div>
         <p className="mt-0.5 text-xs text-brand-700/80">
@@ -190,6 +191,14 @@ export default function HomePage() {
 
         {saving && <ParsingIndicator messages={URL_STAGES} className="mt-2" />}
         {error && <p className="mt-2 rounded-lg bg-red-50 p-2 text-sm text-red-700">{error}</p>}
+
+        {/* URL이 없거나 자막 없는 영상도 담을 수 있음을 알린다 (왓슨: "유튜브 링크만 되나?") */}
+        <Link
+          href="/new?mode=paste"
+          className="mt-3 inline-block text-xs font-medium text-brand-700 underline underline-offset-2"
+        >
+          링크가 없어요? 설명란·블로그 글을 붙여넣어 담기 →
+        </Link>
       </section>
 
       {/* 자막 없는 영상: 붙여넣기 경로로 안내 */}

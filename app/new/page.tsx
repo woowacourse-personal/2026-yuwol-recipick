@@ -10,6 +10,7 @@ import { useCategories } from "@/lib/store";
 import type { Ingredient, ParsedRecipe, Step } from "@/lib/types";
 import { CategoryModal } from "@/components/CategoryModal";
 import { ParsingIndicator, Spinner } from "@/components/ParsingIndicator";
+import { TabBar } from "@/components/TabBar";
 
 type Mode = "paste" | "manual";
 
@@ -36,7 +37,7 @@ function NewRecipeInner() {
   const [mode, setMode] = useState<Mode>(params.get("mode") === "manual" ? "manual" : "paste");
 
   return (
-    <main className="mx-auto min-h-dvh max-w-md px-4 pb-28">
+    <main className="mx-auto min-h-dvh max-w-md px-4 pb-44">
       <header className="flex items-center justify-between py-4">
         <Link href="/" className="text-neutral-400">‹ 취소</Link>
         <h1 className="font-semibold">레시피 추가</h1>
@@ -64,6 +65,8 @@ function NewRecipeInner() {
       ) : (
         <ManualForm existingCats={existingCats} router={router} />
       )}
+
+      <TabBar />
     </main>
   );
 }
@@ -118,7 +121,7 @@ function PasteForm({
       categories: cats,
     });
     setPending(null);
-    router.push(`/recipe/${recipe.id}`);
+    router.push(`/recipe/${recipe.id}?saved=1`);
   }
 
   return (
@@ -156,7 +159,10 @@ function PasteForm({
       {parsing && <ParsingIndicator messages={TEXT_STAGES} className="mt-4" />}
       {error && <p className="mt-3 rounded-lg bg-red-50 p-2 text-sm text-red-700">{error}</p>}
 
-      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-neutral-200 bg-white p-3">
+      <div
+        className="fixed inset-x-0 mx-auto max-w-md border-t border-neutral-200 bg-white p-3"
+        style={{ bottom: "calc(60px + env(safe-area-inset-bottom))" }}
+      >
         <button
           onClick={parse}
           disabled={parsing || !text.trim()}
@@ -199,7 +205,7 @@ function ManualForm({ existingCats, router }: { existingCats: string[]; router: 
       ingredients: ingredients.filter((i) => i.name.trim()),
       steps: steps.filter((s) => s.text.trim()),
     });
-    router.push(`/recipe/${recipe.id}`);
+    router.push(`/recipe/${recipe.id}?saved=1`);
   }
 
   return (
@@ -314,7 +320,10 @@ function ManualForm({ existingCats, router }: { existingCats: string[]; router: 
         + 스텝 추가
       </button>
 
-      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-neutral-200 bg-white p-3">
+      <div
+        className="fixed inset-x-0 mx-auto max-w-md border-t border-neutral-200 bg-white p-3"
+        style={{ bottom: "calc(60px + env(safe-area-inset-bottom))" }}
+      >
         <button
           onClick={save}
           className="block w-full rounded-2xl bg-neutral-900 py-4 text-center text-lg font-bold text-white"

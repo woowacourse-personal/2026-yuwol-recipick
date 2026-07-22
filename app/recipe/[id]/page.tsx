@@ -1,7 +1,7 @@
 "use client";
 
 // 재료 준비 화면 (PRD §8 화면3, Phase 5).
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useRecipe, useCategories } from "@/lib/store";
@@ -15,6 +15,16 @@ export default function PrepPage() {
   const { id } = useParams<{ id: string }>();
   const recipe = useRecipe(id);
   const allCategories = useCategories();
+
+  // 저장 완료 피드백 (벤지: 저장됐는지 불확실) — ?saved=1로 넘어오면 잠깐 토스트.
+  // useSearchParams의 Suspense 요구를 피하려 클라에서 location.search를 직접 읽는다.
+  const [savedToast, setSavedToast] = useState(false);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("saved") !== "1") return;
+    setSavedToast(true);
+    const t = setTimeout(() => setSavedToast(false), 2600);
+    return () => clearTimeout(t);
+  }, []);
 
   // 조회 기록 (accessCount++, view 로그) — 마운트 시 1회
   const viewed = useRef(false);
@@ -60,6 +70,13 @@ export default function PrepPage() {
 
   return (
     <main className="mx-auto min-h-dvh max-w-md px-4 pb-40">
+      {savedToast && (
+        <div className="fixed inset-x-0 top-3 z-50 mx-auto flex max-w-md justify-center px-4">
+          <div className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow-lg">
+            레시피를 담았어요 ✓
+          </div>
+        </div>
+      )}
       <header className="flex items-start justify-between gap-3 py-4">
         <Link href="/" className="mt-1 text-neutral-400" aria-label="뒤로">
           ‹ 홈
