@@ -9,6 +9,33 @@ import { logEvent, getViewMode, setViewMode, type ViewMode } from "@/lib/storage
 import { useWakeLock } from "@/lib/useWakeLock";
 import { CookingModeCards } from "@/components/CookingModeCards";
 import { CookingModeOverview } from "@/components/CookingModeOverview";
+import { YouTubeEmbed, type YouTubeEmbedHandle } from "@/components/YouTubeEmbed";
+import type { Recipe } from "@/lib/types";
+
+/**
+ * 해당 스텝의 영상 위치(초). 스텝 자체에 타임스탬프가 없으면 바로 앞의 타임스탬프로,
+ * 그것도 없으면 뒤에서 채운다 → 자막 품질로 일부 스텝만 타임스탬프가 붙어도 연동이 끊기지 않게 한다.
+ * 영상에 타임스탬프가 하나도 없으면 undefined(연동 불가).
+ */
+function effectiveStartTime(steps: Recipe["steps"], index: number): number | undefined {
+  for (let i = index; i >= 0; i--) {
+    if (steps[i]?.startTime !== undefined) return steps[i].startTime;
+  }
+  for (let i = index + 1; i < steps.length; i++) {
+    if (steps[i]?.startTime !== undefined) return steps[i].startTime;
+  }
+  return undefined;
+}
+
+/** 현재 재생 시각(초)에 해당하는 스텝 인덱스 (전체 뷰 자동 하이라이트용). 없으면 -1. */
+function stepIndexAtTime(steps: Recipe["steps"], seconds: number): number {
+  let active = -1;
+  for (let i = 0; i < steps.length; i++) {
+    const t = steps[i].startTime;
+    if (t !== undefined && seconds >= t) active = i;
+  }
+  return active;
+}
 
 export default function CookPage() {
   return (
@@ -35,6 +62,20 @@ function CookInner() {
   // 초기 스텝: ?step (1-based) → 0-based
   const [index, setIndexState] = useState(0);
   const initialized = useRef(false);
+
+  // 공유 영상 플레이어 — cook 페이지가 소유해 카드/전체 뷰 전환에도 재생이 끊기지 않는다(왓슨).
+  const embedRef = useRef<YouTubeEmbedHandle>(null);
+  const [activeIndex, setActiveIndex] = useState(-1); // 전체 뷰 자동 하이라이트 (재생 시각 기반)
+  const isYoutube = !!recipe && recipe.sourceType === "youtube" && !!recipe.videoId;
+
+  // 카드 스텝 이동 시: 해당 구간으로 이동하되 재생하지 않고 정지 — 다음 단계 준비 시간 확보(송송).
+  // 전체 뷰에선 영상을 자유 재생(자동 하이라이트)하므로 이 강제 이동을 걸지 않는다.
+  useEffect(() => {
+    if (!recipe || !isYoutube || view !== "cards") return;
+    const t = effectiveStartTime(recipe.steps, index);
+    if (t !== undefined) embedRef.current?.seekTo(t, false); // seek + pause
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index, view, isYoutube]);
 
   // 마운트 로깅 (startCooking + youtube면 openEmbed) + 초기 스텝 세팅
   useEffect(() => {
@@ -107,11 +148,32 @@ function CookInner() {
         </div>
       </header>
 
-      {view === "cards" ? (
-        <CookingModeCards recipe={recipe} index={index} setIndex={setIndex} />
-      ) : (
-        <CookingModeOverview recipe={recipe} onDetail={onDetailFromOverview} />
+      {/* 공유 영상 — 뷰 전환에도 파괴되지 않아 재생이 유지된다 */}
+      {isYoutube && (
+        <div className="w-full bg-black">
+          <YouTubeEmbed
+            ref={embedRef}
+            videoId={recipe.videoId!}
+            startSeconds={effectiveStartTime(recipe.steps, index) ?? 0}
+            onTime={(t) => {
+              const i = stepIndexAtTime(recipe.steps, t);
+              setActiveIndex((prev) => (prev === i ? prev : i));
+            }}
+          />
+        </div>
       )}
+
+      <div className="flex flex-1 flex-col overflow-y-auto">
+        {view === "cards" ? (
+          <CookingModeCards recipe={recipe} index={index} setIndex={setIndex} />
+        ) : (
+          <CookingModeOverview
+            recipe={recipe}
+            onDetail={onDetailFromOverview}
+            activeIndex={activeIndex}
+          />
+        )}
+      </div>
     </main>
   );
 }

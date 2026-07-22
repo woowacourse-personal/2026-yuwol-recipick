@@ -30,6 +30,8 @@ declare global {
 export type YouTubeEmbedHandle = {
   /** 지정 초로 이동. play=true면 이동 후 재생까지(스텝 이동 시 해당 구간 재생용). */
   seekTo: (seconds: number, play?: boolean) => void;
+  /** 재생 정지 (다음 카드로 넘길 때 준비 시간 확보 — 송송 요청). */
+  pause: () => void;
   getCurrentTime: () => number;
 };
 
@@ -79,7 +81,9 @@ export const YouTubeEmbed = forwardRef<YouTubeEmbedHandle, Props>(
       seekTo: (s: number, play = false) => {
         playerRef.current?.seekTo?.(s, true);
         if (play) playerRef.current?.playVideo?.();
+        else playerRef.current?.pauseVideo?.();
       },
+      pause: () => playerRef.current?.pauseVideo?.(),
       getCurrentTime: () => playerRef.current?.getCurrentTime?.() ?? 0,
     }));
 

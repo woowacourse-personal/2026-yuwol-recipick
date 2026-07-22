@@ -1,10 +1,10 @@
 "use client";
 
-// 쿠킹 모드 · 카드 뷰 (PRD §8 화면4). 스텝별 카드 + 임베드 + 스와이프 + 하이라이팅.
-import { useEffect, useRef, useState } from "react";
+// 쿠킹 모드 · 카드 뷰 (PRD §8 화면4). 스텝별 카드 + 스와이프 + 하이라이팅.
+// 영상 임베드는 부모(cook 페이지)가 소유해 카드/전체 뷰 전환에도 재생이 끊기지 않는다(왓슨 지적).
+import { useRef, useState } from "react";
 import type { Recipe } from "@/lib/types";
 import { HighlightedText } from "./HighlightedText";
-import { YouTubeEmbed, type YouTubeEmbedHandle } from "./YouTubeEmbed";
 import { StepTimer } from "./StepTimer";
 import { formatTime } from "@/lib/format";
 import { stepTimerSeconds } from "@/lib/timers";
@@ -13,27 +13,14 @@ export function CookingModeCards({
   recipe,
   index,
   setIndex,
-  onOpenEmbed,
 }: {
   recipe: Recipe;
   index: number;
   setIndex: (i: number) => void;
-  onOpenEmbed?: () => void;
 }) {
   const steps = recipe.steps;
   const step = steps[index];
-  const embedRef = useRef<YouTubeEmbedHandle>(null);
   const [listOpen, setListOpen] = useState(false);
-  const isYoutube = recipe.sourceType === "youtube" && !!recipe.videoId;
-
-  // 스텝 이동 시 해당 타임스탬프로 이동 후 재생 (카드 단계에 맞춰 영상이 따라온다).
-  // 최초 마운트 땐 플레이어가 아직 준비 전이라 no-op → 입장하자마자 자동재생되진 않고,
-  // 사용자가 스텝을 넘길 때 그 구간이 재생된다. 스텝 끝에서 멈추거나 자동 넘김은 하지 않음(PRD).
-  useEffect(() => {
-    if (isYoutube && step?.startTime !== undefined) {
-      embedRef.current?.seekTo(step.startTime, true);
-    }
-  }, [index, isYoutube, step?.startTime]);
 
   // 스와이프
   const startX = useRef<number | null>(null);
@@ -54,16 +41,6 @@ export function CookingModeCards({
 
   return (
     <div className="flex flex-1 flex-col">
-      {isYoutube && (
-        <div className="w-full" onClick={onOpenEmbed}>
-          <YouTubeEmbed
-            ref={embedRef}
-            videoId={recipe.videoId!}
-            startSeconds={steps[index]?.startTime ?? 0}
-          />
-        </div>
-      )}
-
       <div
         className="flex flex-1 select-none flex-col p-5"
         onPointerDown={onPointerDown}

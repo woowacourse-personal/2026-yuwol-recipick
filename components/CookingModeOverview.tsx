@@ -1,50 +1,22 @@
 "use client";
 
-// 쿠킹 모드 · 전체 뷰 (PRD §8 화면4, 파라디 제안). 스크롤 나열 + 상단 고정 임베드 + 재생 중 자동 하이라이트.
-import { useState } from "react";
+// 쿠킹 모드 · 전체 뷰 (PRD §8 화면4, 파라디 제안). 스크롤 나열 + 재생 중 자동 하이라이트.
+// 영상 임베드는 부모(cook 페이지)가 소유(뷰 전환에도 재생 유지). activeIndex도 부모가 재생 시각으로 계산해 내려준다.
 import type { Recipe } from "@/lib/types";
 import { HighlightedText } from "./HighlightedText";
-import { YouTubeEmbed } from "./YouTubeEmbed";
 import { formatTime } from "@/lib/format";
-
-/** 현재 재생 시각(초)에 해당하는 스텝 인덱스를 구한다. */
-function stepIndexAtTime(recipe: Recipe, seconds: number): number {
-  const steps = recipe.steps;
-  let active = -1;
-  for (let i = 0; i < steps.length; i++) {
-    const t = steps[i].startTime;
-    if (t !== undefined && seconds >= t) active = i;
-  }
-  return active;
-}
 
 export function CookingModeOverview({
   recipe,
   onDetail,
-  onOpenEmbed,
+  activeIndex,
 }: {
   recipe: Recipe;
   onDetail: (index: number) => void;
-  onOpenEmbed?: () => void;
+  activeIndex: number; // 현재 재생 구간에 해당하는 스텝 (없으면 -1)
 }) {
-  const [activeIndex, setActiveIndex] = useState(-1);
-  const isYoutube = recipe.sourceType === "youtube" && !!recipe.videoId;
-
   return (
     <div className="flex flex-1 flex-col">
-      {isYoutube && (
-        <div className="sticky top-0 z-10 w-full bg-black" onClick={onOpenEmbed}>
-          <YouTubeEmbed
-            videoId={recipe.videoId!}
-            startSeconds={recipe.steps[0]?.startTime ?? 0}
-            onTime={(t) => {
-              const i = stepIndexAtTime(recipe, t);
-              setActiveIndex((prev) => (prev === i ? prev : i));
-            }}
-          />
-        </div>
-      )}
-
       <ol className="flex-1 space-y-3 p-4">
         {recipe.steps.map((s, i) => {
           const active = i === activeIndex;
