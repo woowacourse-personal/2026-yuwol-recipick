@@ -18,6 +18,7 @@ export default function EditPage() {
   const [catDraft, setCatDraft] = useState("");
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [steps, setSteps] = useState<Step[]>([]);
+  const [servings, setServings] = useState(""); // 빈 문자열 = 미상
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -26,6 +27,7 @@ export default function EditPage() {
       setCategories(recipe.categories);
       setIngredients(recipe.ingredients.map((i) => ({ ...i })));
       setSteps(recipe.steps.map((s) => ({ ...s })));
+      setServings(recipe.servings ? String(recipe.servings) : "");
       setLoaded(true);
     }
   }, [recipe, loaded]);
@@ -44,9 +46,14 @@ export default function EditPage() {
       .filter((s) => s.text.trim())
       .map((s, i) => ({ ...s, order: i + 1 }));
     categories.forEach(addCategory);
+    const servingsNum = Number(servings);
     updateRecipe(recipe!.id, {
       title: title.trim() || recipe!.title,
       categories,
+      servings:
+        servings.trim() && Number.isFinite(servingsNum) && servingsNum >= 1
+          ? Math.round(servingsNum)
+          : undefined,
       ingredients: ingredients.filter((i) => i.name.trim()),
       steps: cleanSteps,
     });
@@ -73,6 +80,19 @@ export default function EditPage() {
         onChange={(e) => setTitle(e.target.value)}
         className="mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-lg"
       />
+
+      {/* 기준 인분 — 인분 조정의 기준값. 비우면 조정 UI가 숨겨진다. */}
+      <label className="mt-4 block text-sm font-medium text-neutral-500">기준 인분</label>
+      <div className="mt-1 flex items-center gap-2">
+        <input
+          value={servings}
+          onChange={(e) => setServings(e.target.value.replace(/[^0-9]/g, ""))}
+          inputMode="numeric"
+          placeholder="예: 2"
+          className="w-24 rounded-xl border border-neutral-300 px-3 py-2.5 text-lg"
+        />
+        <span className="text-neutral-500">인분</span>
+      </div>
 
       {/* 카테고리 */}
       <h2 className="mt-6 text-sm font-medium text-neutral-500">카테고리</h2>

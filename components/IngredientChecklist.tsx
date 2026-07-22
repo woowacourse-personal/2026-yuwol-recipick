@@ -3,8 +3,15 @@
 // 재료 체크리스트 (PRD §8 화면3). 기본/특수 재료 섹션 분리, 기본은 접힘 (파라디 요청).
 import { useMemo, useState } from "react";
 import type { Ingredient } from "@/lib/types";
+import { scaleAmount } from "@/lib/servings";
 
-export function IngredientChecklist({ ingredients }: { ingredients: Ingredient[] }) {
+export function IngredientChecklist({
+  ingredients,
+  factor = 1,
+}: {
+  ingredients: Ingredient[];
+  factor?: number; // 인분 조정 배수 (기준 인분 대비). 1이면 원본 그대로.
+}) {
   const { special, basic } = useMemo(() => {
     return {
       special: ingredients.filter((i) => !i.isBasic),
@@ -45,7 +52,7 @@ export function IngredientChecklist({ ingredients }: { ingredients: Ingredient[]
         </span>
         {ing.amount && (
           <span className={`text-base ${isChecked ? "text-neutral-300" : "text-neutral-500"}`}>
-            {ing.amount}
+            {scaleAmount(ing.amount, factor)}
           </span>
         )}
       </button>

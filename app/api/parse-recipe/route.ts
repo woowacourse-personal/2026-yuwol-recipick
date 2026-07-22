@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extractVideoId, fetchVideoMeta } from "@/lib/youtube";
-import { fetchTranscript, transcriptToPrompt, NoTranscriptError } from "@/lib/transcript";
+import {
+  fetchTranscript,
+  fetchVideoDescription,
+  transcriptToPrompt,
+  NoTranscriptError,
+} from "@/lib/transcript";
 import {
   parseRecipeFromTranscript,
   parseRecipeFromText,
@@ -69,16 +74,18 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // oEmbed로 채널명·제목 확보 (자막과 병렬). 실패해도 파싱은 진행.
-    const [segments, meta] = await Promise.all([
+    // 자막·채널명(oEmbed)·설명란(Supadata)을 병렬 확보. 설명란·메타 실패해도 자막으로 파싱 진행.
+    const [segments, meta, description] = await Promise.all([
       fetchTranscript(videoId),
       fetchVideoMeta(videoId),
+      fetchVideoDescription(videoId),
     ]);
     const transcript = transcriptToPrompt(segments);
     const recipe = await parseRecipeFromTranscript({
       transcript,
       videoTitle: body.videoTitle ?? meta.title,
       channelName: body.channelName ?? meta.channelName,
+      description,
     });
 
     cache.set(videoId, { recipe, videoId });

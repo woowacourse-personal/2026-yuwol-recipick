@@ -8,7 +8,7 @@
  * 자막 있는 요리 영상 80% 이상에서 사용 가능한 결과가 목표 (§15).
  */
 import { extractVideoId } from "../lib/youtube";
-import { fetchTranscript, transcriptToPrompt } from "../lib/transcript";
+import { fetchTranscript, fetchVideoDescription, transcriptToPrompt } from "../lib/transcript";
 import { parseRecipeFromTranscript } from "../lib/parse";
 
 const DEFAULT_URLS: string[] = [
@@ -39,15 +39,20 @@ async function main() {
     }
     try {
       const t0 = Date.now();
-      const segments = await fetchTranscript(videoId);
+      const [segments, description] = await Promise.all([
+        fetchTranscript(videoId),
+        fetchVideoDescription(videoId),
+      ]);
       const recipe = await parseRecipeFromTranscript({
         transcript: transcriptToPrompt(segments),
+        description,
       });
       const ms = Date.now() - t0;
-      console.log(`  ✓ ${recipe.title}`);
-      console.log(`    재료 ${recipe.ingredients.length} · 스텝 ${recipe.steps.length} · 태그 [${recipe.tags.join(", ")}] · ${ms}ms`);
+      console.log(`  ✓ ${recipe.title}${recipe.servings ? ` (${recipe.servings}인분)` : " (인분 미상)"}`);
+      console.log(`    설명란 ${description.length}자 · 재료 ${recipe.ingredients.length} · 스텝 ${recipe.steps.length} · 태그 [${recipe.tags.join(", ")}] · ${ms}ms`);
       const withTime = recipe.steps.filter((s) => s.startTime !== undefined).length;
       console.log(`    타임스탬프 매핑: ${withTime}/${recipe.steps.length} 스텝`);
+      console.log(`    재료: ${recipe.ingredients.map((i) => `${i.name}${i.amount ? " " + i.amount : ""}`).join(", ")}`);
       success++;
     } catch (err) {
       console.log(`  ✗ ${(err as Error).message}`);

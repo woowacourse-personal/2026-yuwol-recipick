@@ -48,6 +48,34 @@ export async function fetchTranscript(videoId: string): Promise<TranscriptSegmen
   throw new NoTranscriptError();
 }
 
+/**
+ * 영상 설명란 텍스트를 가져온다 (Supadata metadata 엔드포인트).
+ * 요리 영상은 설명란에 재료·계량을 깔끔하게 적어두는 경우가 많아, 음성인식 자막의 누락·오파싱을
+ * 보완하는 2차 소스로 쓴다(왓슨: "자막 파싱 < 설명란 퀄리티"). [[2026-07-22-interviews-v5-6people]]
+ * 키가 없거나 실패하면 빈 문자열 — 자막만으로 파싱을 계속한다.
+ * 프로모션·링크 잡음과 TPM 한도(자막이 주 소스) 보호를 위해 길이를 제한한다.
+ */
+const DESCRIPTION_MAX_CHARS = 2000;
+
+export async function fetchVideoDescription(videoId: string): Promise<string> {
+  const apiKey = process.env.SUPADATA_API_KEY;
+  if (!apiKey) return "";
+  try {
+    const res = await fetch(`https://api.supadata.ai/v1/youtube/video?id=${videoId}`, {
+      headers: { "x-api-key": apiKey },
+    });
+    if (!res.ok) return "";
+    const data = (await res.json()) as { description?: string };
+    const desc = decodeEntities(String(data.description ?? "")).trim();
+    return desc.length > DESCRIPTION_MAX_CHARS
+      ? desc.slice(0, DESCRIPTION_MAX_CHARS) + "…"
+      : desc;
+  } catch (err) {
+    console.warn("[transcript] 설명란 가져오기 실패:", (err as Error).message);
+    return "";
+  }
+}
+
 /** 서드파티(Supadata) 경유 — 프록시 내장이라 클라우드에서도 동작. offset/duration은 ms. */
 async function fetchViaSupadata(videoId: string, apiKey: string): Promise<TranscriptSegment[]> {
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;

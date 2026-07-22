@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useRecipe, useCategories } from "@/lib/store";
 import { recordView, updateRecipe, addCategory, removeCategory } from "@/lib/storage";
-import { IngredientChecklist } from "@/components/IngredientChecklist";
+import { ServingsIngredients } from "@/components/ServingsIngredients";
 import { StepOverview } from "@/components/StepOverview";
 import { SourceAttribution } from "@/components/SourceAttribution";
 import { CategoryPicker } from "@/components/CategoryPicker";
@@ -102,7 +102,10 @@ export default function PrepPage() {
       <section className="mt-8">
         <h2 className="mb-1 text-lg font-bold">재료</h2>
         {recipe.ingredients.length > 0 ? (
-          <IngredientChecklist ingredients={recipe.ingredients} />
+          <ServingsIngredients
+            ingredients={recipe.ingredients}
+            baseServings={recipe.servings}
+          />
         ) : (
           <p className="py-3 text-sm text-neutral-400">재료 정보가 없어요.</p>
         )}

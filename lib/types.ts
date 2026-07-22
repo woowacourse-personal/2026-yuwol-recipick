@@ -37,6 +37,7 @@ export type Recipe = {
   savedAt: string;
   lastAccessedAt: string;
   accessCount: number; // 재방문 검증용 (가설 H2)
+  servings?: number; // 원본 레시피 기준 인분 수 (인분 조정의 기준값 — 벤지 요청). 미상이면 생략.
   categories: string[]; // 사용자 커스텀 카테고리
   tags: string[]; // 자동 추출 태그 (예: "면 요리", "매운맛")
   ingredients: Ingredient[];
@@ -47,6 +48,7 @@ export type Recipe = {
 export type ParsedRecipe = {
   title: string;
   channelName?: string;
+  servings?: number; // 레시피가 몇 인분 기준인지 (없으면 생략)
   tags: string[];
   ingredients: Ingredient[];
   steps: Step[];
