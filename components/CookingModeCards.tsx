@@ -38,6 +38,7 @@ export function CookingModeCards({
   if (!step) return null;
 
   const timerSeconds = stepTimerSeconds(step);
+  const nextStep = steps[index + 1]; // 다음 스텝 한 줄 미리보기용 (왓슨: "다음 스텝 축약을 같이")
 
   return (
     <div className="flex flex-1 flex-col">
@@ -73,6 +74,15 @@ export function CookingModeCards({
         )}
 
         <div className="mt-auto pt-6">
+          {/* 다음 스텝 미리보기 — 목록(거부됨)이 아니라 "다음 하나"의 지시문 전문.
+              현재 스텝(text-3xl)을 방해하지 않게 작은 글씨·낮은 대비로 상시 노출. */}
+          {nextStep && (
+            <div className="mb-3 flex items-baseline gap-2 border-t border-white/10 pt-3">
+              <span className="shrink-0 text-sm font-bold text-brand-400/80">다음</span>
+              <p className="text-sm leading-relaxed text-white/45">{nextStep.text}</p>
+            </div>
+          )}
+
           {/* 프로그레스 바 */}
           <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
             <div

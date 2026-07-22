@@ -7,11 +7,12 @@ import {
   useRef,
   useState,
 } from "react";
-import { watchUrl } from "@/lib/youtube";
 
 // YT IFrame API 최소 타입
 type YTPlayer = {
   seekTo: (seconds: number, allowSeekAhead: boolean) => void;
+  // 아직 한 번도 재생 안 한 플레이어를 지정 시각으로 "재큐잉"(재생 없이, 썸네일 유지).
+  cueVideoById: (opts: { videoId: string; startSeconds?: number }) => void;
   getCurrentTime: () => number;
   playVideo: () => void;
   pauseVideo: () => void;
@@ -67,21 +68,36 @@ type Props = {
  * YouTube IFrame Player 래퍼 (PRD §3, 화면4).
  * - 특정 타임스탬프 시작 + 외부에서 seekTo 제어
  * - 재생 중 onTime 콜백 (전체 뷰 자동 하이라이트)
- * - 임베드 차단 영상은 "유튜브에서 보기" 폴백 (PRD §12)
+ * - 임베드 차단 영상은 아무것도 렌더하지 않고 onBlocked만 호출(부모가 영상 영역을 숨김)
  */
 export const YouTubeEmbed = forwardRef<YouTubeEmbedHandle, Props>(
   function YouTubeEmbed({ videoId, startSeconds = 0, onTime, onBlocked, className }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const playerRef = useRef<YTPlayer | null>(null);
+    const startedRef = useRef(false); // 사용자가 한 번이라도 재생을 시작했는지
     const [blocked, setBlocked] = useState(false);
     const onTimeRef = useRef(onTime);
     onTimeRef.current = onTime;
 
     useImperativeHandle(ref, () => ({
       seekTo: (s: number, play = false) => {
-        playerRef.current?.seekTo?.(s, true);
-        if (play) playerRef.current?.playVideo?.();
-        else playerRef.current?.pauseVideo?.();
+        const p = playerRef.current;
+        if (!p) return;
+        if (play) {
+          p.seekTo(s, true);
+          p.playVideo?.();
+          return;
+        }
+        // play=false(스텝 이동 시 이동+정지):
+        // - 이미 재생 중이던 플레이어는 seek 후 일시정지(송송: 다음 단계 준비 시간).
+        // - 아직 한 번도 재생 안 한 플레이어는 seekTo가 자동재생을 유발해 검게 뜨고 클릭이 먹통이 된다.
+        //   → cueVideoById로 재큐잉만 해 썸네일·재생버튼을 유지한다.
+        if (startedRef.current) {
+          p.seekTo(s, true);
+          p.pauseVideo?.();
+        } else {
+          p.cueVideoById?.({ videoId, startSeconds: Math.floor(s) });
+        }
       },
       pause: () => playerRef.current?.pauseVideo?.(),
       getCurrentTime: () => playerRef.current?.getCurrentTime?.() ?? 0,
@@ -121,6 +137,10 @@ export const YouTubeEmbed = forwardRef<YouTubeEmbedHandle, Props>(
               setBlocked(true);
               onBlocked?.();
             },
+            // 사용자가 재생을 시작하면(PLAYING) 기록 — 이후 스텝 이동 시 seek+정지가 안전.
+            onStateChange: (e: { data?: number }) => {
+              if (e?.data === window.YT?.PlayerState?.PLAYING) startedRef.current = true;
+            },
           },
         });
       });
@@ -141,23 +161,8 @@ export const YouTubeEmbed = forwardRef<YouTubeEmbedHandle, Props>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [videoId]);
 
-    if (blocked) {
-      return (
-        <div
-          className={`flex aspect-video w-full flex-col items-center justify-center gap-2 bg-neutral-900 text-neutral-200 ${className ?? ""}`}
-        >
-          <p className="text-sm">이 영상은 임베드가 제한되어 있어요</p>
-          <a
-            href={watchUrl(videoId, startSeconds)}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-medium text-white"
-          >
-            유튜브에서 보기
-          </a>
-        </div>
-      );
-    }
+    // 임베드가 제한된 영상은 안내 문구/영상을 아예 띄우지 않는다(부모가 onBlocked로 컨테이너까지 숨김).
+    if (blocked) return null;
 
     return (
       <div className={`aspect-video w-full bg-black ${className ?? ""}`}>

@@ -66,7 +66,9 @@ function CookInner() {
   // 공유 영상 플레이어 — cook 페이지가 소유해 카드/전체 뷰 전환에도 재생이 끊기지 않는다(왓슨).
   const embedRef = useRef<YouTubeEmbedHandle>(null);
   const [activeIndex, setActiveIndex] = useState(-1); // 전체 뷰 자동 하이라이트 (재생 시각 기반)
-  const isYoutube = !!recipe && recipe.sourceType === "youtube" && !!recipe.videoId;
+  const [embedBlocked, setEmbedBlocked] = useState(false); // 임베드 제한 영상 → 영상 영역 자체를 숨김
+  const isYoutube =
+    !!recipe && recipe.sourceType === "youtube" && !!recipe.videoId && !embedBlocked;
 
   // 카드 스텝 이동 시: 해당 구간으로 이동하되 재생하지 않고 정지 — 다음 단계 준비 시간 확보(송송).
   // 전체 뷰에선 영상을 자유 재생(자동 하이라이트)하므로 이 강제 이동을 걸지 않는다.
@@ -159,6 +161,7 @@ function CookInner() {
               const i = stepIndexAtTime(recipe.steps, t);
               setActiveIndex((prev) => (prev === i ? prev : i));
             }}
+            onBlocked={() => setEmbedBlocked(true)}
           />
         </div>
       )}
