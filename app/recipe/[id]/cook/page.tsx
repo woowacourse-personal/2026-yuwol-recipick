@@ -5,7 +5,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useRecipe } from "@/lib/store";
-import { logEvent, getViewMode, setViewMode, type ViewMode } from "@/lib/storage";
+import { logEvent, getViewMode, setViewMode, updateRecipe, type ViewMode } from "@/lib/storage";
 import { useWakeLock } from "@/lib/useWakeLock";
 import { CookingModeCards } from "@/components/CookingModeCards";
 import { CookingModeOverview } from "@/components/CookingModeOverview";
@@ -116,6 +116,13 @@ function CookInner() {
     logEvent("toggleView", recipe!.id, { to: next }); // 검증1 핵심 데이터
   }
 
+  // 요리 중 오타 즉시 수정 — 해당 스텝 텍스트만 갱신해 localStorage에 저장.
+  function editStepText(i: number, text: string) {
+    if (!recipe) return;
+    const steps = recipe.steps.map((s, idx) => (idx === i ? { ...s, text } : s));
+    updateRecipe(recipe.id, { steps });
+  }
+
   function onDetailFromOverview(i: number) {
     setIndexState(i);
     toggleView("cards");
@@ -168,7 +175,12 @@ function CookInner() {
 
       <div className="flex flex-1 flex-col overflow-y-auto">
         {view === "cards" ? (
-          <CookingModeCards recipe={recipe} index={index} setIndex={setIndex} />
+          <CookingModeCards
+            recipe={recipe}
+            index={index}
+            setIndex={setIndex}
+            onEditStep={editStepText}
+          />
         ) : (
           <CookingModeOverview
             recipe={recipe}

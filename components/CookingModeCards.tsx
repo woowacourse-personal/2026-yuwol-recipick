@@ -2,7 +2,7 @@
 
 // 쿠킹 모드 · 카드 뷰 (PRD §8 화면4). 스텝별 카드 + 스와이프 + 하이라이팅.
 // 영상 임베드는 부모(cook 페이지)가 소유해 카드/전체 뷰 전환에도 재생이 끊기지 않는다(왓슨 지적).
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Recipe } from "@/lib/types";
 import { HighlightedText } from "./HighlightedText";
 import { StepTimer } from "./StepTimer";
@@ -13,22 +13,41 @@ export function CookingModeCards({
   recipe,
   index,
   setIndex,
+  onEditStep,
 }: {
   recipe: Recipe;
   index: number;
   setIndex: (i: number) => void;
+  onEditStep?: (index: number, text: string) => void; // 요리 중 오타 즉시 수정
 }) {
   const steps = recipe.steps;
   const step = steps[index];
   const [listOpen, setListOpen] = useState(false);
 
-  // 스와이프
+  // 요리 중 인라인 오타 수정 — 현재 스텝 지시문을 그 자리에서 고친다.
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  // 스텝을 넘기면 편집은 취소(다른 스텝을 실수로 덮어쓰지 않게).
+  useEffect(() => setEditing(false), [index]);
+
+  function startEdit() {
+    setDraft(step.text);
+    setEditing(true);
+  }
+  function saveEdit() {
+    const next = draft.trim();
+    if (next && next !== step.text) onEditStep?.(index, next);
+    setEditing(false);
+  }
+
+  // 스와이프 (편집 중엔 비활성화)
   const startX = useRef<number | null>(null);
   function onPointerDown(e: React.PointerEvent) {
+    if (editing) return;
     startX.current = e.clientX;
   }
   function onPointerUp(e: React.PointerEvent) {
-    if (startX.current === null) return;
+    if (editing || startX.current === null) return;
     const dx = e.clientX - startX.current;
     startX.current = null;
     if (dx < -50 && index < steps.length - 1) setIndex(index + 1);
@@ -47,16 +66,51 @@ export function CookingModeCards({
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
       >
-        <div className="mb-4 flex items-center justify-center gap-2 text-sm text-white/40">
+        <div className="relative mb-4 flex items-center justify-center gap-2 text-sm text-white/40">
           <span className="font-bold text-brand-400">
             {index + 1} / {steps.length}
           </span>
           {step.startTime !== undefined && <span>· {formatTime(step.startTime)}</span>}
+          {onEditStep && !editing && (
+            <button
+              onClick={startEdit}
+              className="absolute right-0 inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-white/30 active:bg-white/10"
+              aria-label="이 단계 수정하기"
+            >
+              ✏️ 수정하기
+            </button>
+          )}
         </div>
 
-        <p className="text-center text-3xl leading-relaxed text-neutral-50">
-          <HighlightedText text={step.text} highlights={step.highlights} />
-        </p>
+        {editing ? (
+          <div className="flex flex-col items-center gap-3">
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              autoFocus
+              rows={4}
+              className="w-full rounded-2xl border border-white/25 bg-white/10 p-3 text-center text-2xl leading-relaxed text-neutral-50 focus:border-brand-400 focus:outline-none"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => setEditing(false)}
+                className="rounded-xl border border-white/20 px-5 py-2 text-base text-white active:bg-white/10"
+              >
+                취소
+              </button>
+              <button
+                onClick={saveEdit}
+                className="rounded-xl bg-brand-500 px-5 py-2 text-base font-bold text-white active:scale-[0.99]"
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-center text-3xl leading-relaxed text-neutral-50">
+            <HighlightedText text={step.text} highlights={step.highlights} />
+          </p>
+        )}
 
         {step.memo && (
           <p className="mt-4 rounded-xl bg-amber-400/15 p-3 text-center text-base text-amber-200">
