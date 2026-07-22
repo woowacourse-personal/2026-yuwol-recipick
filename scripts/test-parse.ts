@@ -29,8 +29,13 @@ async function main() {
     process.exit(1);
   }
 
+  // Groq 무료티어 TPM(분당 토큰) 한도 회피 — 여러 개 측정 시 요청 간 간격.
+  const GAP_MS = Number(process.env.PARSE_GAP_MS ?? 20000);
+
   let success = 0;
-  for (const url of targets) {
+  for (let idx = 0; idx < targets.length; idx++) {
+    const url = targets[idx];
+    if (idx > 0) await new Promise((r) => setTimeout(r, GAP_MS));
     const videoId = extractVideoId(url);
     console.log(`\n=== ${url}`);
     if (!videoId) {
@@ -46,6 +51,7 @@ async function main() {
       const recipe = await parseRecipeFromTranscript({
         transcript: transcriptToPrompt(segments),
         description,
+        segments,
       });
       const ms = Date.now() - t0;
       console.log(`  ✓ ${recipe.title}${recipe.servings ? ` (${recipe.servings}인분)` : " (인분 미상)"}`);

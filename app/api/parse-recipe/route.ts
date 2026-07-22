@@ -86,6 +86,7 @@ export async function POST(req: NextRequest) {
       videoTitle: body.videoTitle ?? meta.title,
       channelName: body.channelName ?? meta.channelName,
       description,
+      segments,
     });
 
     cache.set(videoId, { recipe, videoId });
