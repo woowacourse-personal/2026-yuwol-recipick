@@ -33,6 +33,17 @@ export function scaleAmount(amount: string, factor: number): string {
   });
 }
 
+/**
+ * 양념(기본 조미료)용 완만 배수 — 인분에 선형이 아니라 sub-linear로 늘린다.
+ * 5인분이라고 소금·간장을 5배 넣으면 짜다(라면 5개에 스프 5개 넣지 않는 것과 같은 이치).
+ * exponent 0.8: ×2→약1.7, ×3→약2.4, ×5→약3.6. 절반(×0.5)→약0.57(과하게 싱거워지지 않게).
+ * 어차피 근사이므로 UI에서 "간은 기호에 맞게 조절" 안내를 함께 노출한다.
+ */
+export function seasoningFactor(factor: number): number {
+  if (!Number.isFinite(factor) || factor <= 0) return factor;
+  return Math.pow(factor, 0.8);
+}
+
 /** 조정 대상 인분 후보 (기준 인분을 포함한 합리적 범위). */
 export function servingOptions(base: number): number[] {
   const set = new Set<number>([1, 2, 3, 4, 6, base]);

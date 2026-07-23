@@ -3,7 +3,7 @@
 // 재료 체크리스트 (PRD §8 화면3). 기본/특수 재료 섹션 분리, 기본은 접힘 (파라디 요청).
 import { useMemo, useState } from "react";
 import type { Ingredient } from "@/lib/types";
-import { scaleAmount } from "@/lib/servings";
+import { scaleAmount, seasoningFactor } from "@/lib/servings";
 
 export function IngredientChecklist({
   ingredients,
@@ -53,7 +53,8 @@ export function IngredientChecklist({
         </span>
         {ing.amount && (
           <span className={`text-base ${isChecked ? "text-neutral-300" : "text-neutral-500"}`}>
-            {scaleAmount(ing.amount, factor)}
+            {/* 양념(기본 조미료)은 완만하게, 주재료는 선형으로 조정 */}
+            {scaleAmount(ing.amount, ing.isBasic ? seasoningFactor(factor) : factor)}
           </span>
         )}
       </button>
