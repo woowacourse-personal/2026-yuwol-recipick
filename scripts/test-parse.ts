@@ -44,10 +44,9 @@ async function main() {
     }
     try {
       const t0 = Date.now();
-      const [segments, description] = await Promise.all([
-        fetchTranscript(videoId),
-        fetchVideoDescription(videoId),
-      ]);
+      // 자막 먼저, 설명란은 순차 — Supadata 무료 티어 동시요청 제한(429) 회피(라우트와 동일).
+      const segments = await fetchTranscript(videoId);
+      const description = await fetchVideoDescription(videoId);
       const recipe = await parseRecipeFromTranscript({
         transcript: transcriptToPrompt(segments),
         description,

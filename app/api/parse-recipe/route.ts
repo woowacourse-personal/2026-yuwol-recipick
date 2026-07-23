@@ -74,13 +74,15 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // 자막·채널명(oEmbed)·설명란(Supadata)을 병렬 확보. 설명란·메타 실패해도 자막으로 파싱 진행.
-    const [segments, meta, description] = await Promise.all([
+    // 자막(Supadata)과 채널명(oEmbed, 비-Supadata)만 병렬. 설명란도 Supadata라 자막과 동시에
+    // 호출하면 무료 티어의 동시요청 제한(429)에 걸려 자막이 실패한다 → 자막 성공 후 순차 호출한다.
+    const [segments, meta] = await Promise.all([
       fetchTranscript(videoId),
       fetchVideoMeta(videoId),
-      fetchVideoDescription(videoId),
     ]);
     const transcript = transcriptToPrompt(segments);
+    // 설명란은 보조 소스(있으면 계량 보완). 실패(429 등)해도 fetchVideoDescription이 ""를 반환해 자막만으로 진행.
+    const description = await fetchVideoDescription(videoId);
     const recipe = await parseRecipeFromTranscript({
       transcript,
       videoTitle: body.videoTitle ?? meta.title,
