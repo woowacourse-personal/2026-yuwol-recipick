@@ -122,6 +122,7 @@ export default function PrepPage() {
           <ServingsIngredients
             ingredients={recipe.ingredients}
             baseServings={recipe.servings}
+            onChangeBase={(servings) => updateRecipe(recipe.id, { servings })}
           />
         ) : (
           <p className="py-3 text-sm text-neutral-400">재료 정보가 없어요.</p>
